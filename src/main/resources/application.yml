@@ -1,0 +1,150 @@
+spring:
+  application:
+    name: identity-service
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE:dev}
+
+  # ==================== DATASOURCE: PostgreSQL ====================
+  datasource:
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:dts_identity}
+    username: ${DB_USERNAME:postgres}
+    password: ${DB_PASSWORD:postgres}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 20
+      minimum-idle: 5
+      idle-timeout: 300000
+      connection-timeout: 20000
+      pool-name: IdentityServicePool
+
+  # ==================== JPA / Hibernate ====================
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    hibernate:
+      ddl-auto: validate  # Flyway manages schema; Hibernate only validates
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: true
+        jdbc:
+          time_zone: UTC
+        types:
+          print:
+            banner: false
+
+  # ==================== Flyway Migration ====================
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+    baseline-version: 1
+    table: flyway_schema_history
+    out-of-order: false
+
+  # ==================== Redis (Caching & Token Blacklist) ====================
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+      timeout: 2000ms
+      lettuce:
+        pool:
+          max-active: 16
+          max-idle: 8
+          min-idle: 4
+
+  # ==================== Kafka ====================
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      retries: 3
+      acks: all
+    consumer:
+      group-id: identity-service-group
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: "com.dts.identity.*"
+    topics:
+      user-events: user-events
+      auth-events: auth-events
+
+  # ==================== Jackson ====================
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false
+    default-property-inclusion: non_null
+
+# ==================== Server ====================
+server:
+  port: ${SERVER_PORT:8081}
+  shutdown: graceful
+
+# ==================== JWT Configuration ====================
+jwt:
+  access-token:
+    secret: ${JWT_ACCESS_SECRET:uPq3xK8mR5vY2wZ9aB4cD7eF1gH3iJ6kL0nO5pQ8rS2tU4vW6xY9zA1bC3dE7fG9}
+    expiration-ms: 900000  # 15 minutes
+  refresh-token:
+    secret: ${JWT_REFRESH_SECRET:jI0hG9fE8dC7bA6zY5xW4vU3tS2rQ1pO0nM9lK8jI7hG6fE5dC4bA3zY2xW1vU0}
+    expiration-ms: 604800000  # 7 days
+  issuer: dts-identity-service
+
+# ==================== Security ====================
+security:
+  bcrypt:
+    strength: 12
+  brute-force:
+    max-failed-attempts: 5
+    lock-duration-minutes: 30
+  verification-code:
+    expiration-minutes: 10
+    max-attempts: 3
+
+# ==================== Actuator ====================
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+      base-path: /actuator
+  endpoint:
+    health:
+      show-details: when_authorized
+      probes:
+        enabled: true
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+
+# ==================== Logging ====================
+logging:
+  level:
+    root: INFO
+    com.dts.identity: DEBUG
+    org.springframework.security: INFO
+    org.hibernate.SQL: WARN
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level [%X{traceId:-}] %logger{36} - %msg%n"
+
+# ==================== OpenAPI ====================
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    tags-sorter: alpha
+    operations-sorter: method
+
+# ==================== Eureka Client ====================
+eureka:
+  client:
+    service-url:
+      defaultZone: ${EUREKA_URI:http://localhost:8761/eureka}
+    enabled: ${EUREKA_ENABLED:false}
+  instance:
+    prefer-ip-address: true
