@@ -2,10 +2,14 @@ package com.dts.identity.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.SQLRestriction;
+import org.hibernate.type.SqlTypes;
 
 import java.time.Instant;
-import java.util.*;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.UUID;
 
 @Entity
 @Table(name = "permissions")
@@ -31,6 +35,12 @@ public class Permission {
     @Column(name = "resource", length = 50, nullable = false)
     private String resource;
 
+    // ==================== Audit & Metadata ====================
+
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "metadata", columnDefinition = "jsonb")
+    private String metadata;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     @Builder.Default
     private Instant createdAt = Instant.now();
@@ -42,6 +52,15 @@ public class Permission {
     @Column(name = "deleted_at")
     private Instant deletedAt;
 
+    @Column(name = "created_by")
+    private UUID createdBy;
+
+    @Column(name = "updated_by")
+    private UUID updatedBy;
+
+    // ==================== Relationships ====================
+
     @OneToMany(mappedBy = "permission", fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @Builder.Default
     private Set<RolePermission> rolePermissions = new HashSet<>();
 }

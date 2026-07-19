@@ -98,4 +98,8 @@ public class JwtProvider {
     public long getAccessExpirationMs() {
         return accessExpirationMs;
     }
+
+    public long getRefreshExpirationMs() {
+        return refreshExpirationMs;
+    }
 }

@@ -1,29 +1,88 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
+    <!-- ================================================================
+         Base Spring Boot defaults (console appender, etc.)
+         ================================================================ -->
     <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
     <include resource="org/springframework/boot/logging/logback/console-appender.xml"/>
 
+    <!-- ================================================================
+         Dev Profile: Console logging with human-readable format
+         ================================================================ -->
     <springProfile name="default,dev">
         <root level="INFO">
             <appender-ref ref="CONSOLE"/>
         </root>
         <logger name="com.dts.identity" level="DEBUG"/>
+        <logger name="com.dts.identity.config.OutboxScheduler" level="DEBUG"/>
     </springProfile>
 
+    <!-- ================================================================
+         Docker / Prod Profile: JSON logging sẵn sàng cho ClickHouse
+         ================================================================ -->
     <springProfile name="docker,prod">
+
+        <!-- ======== JSON Appender: tất cả application logs ======== -->
         <appender name="JSON" class="ch.qos.logback.core.ConsoleAppender">
             <encoder class="net.logstash.logback.encoder.LogstashEncoder">
                 <includeContext>true</includeContext>
                 <includeMdcKeyName>traceId</includeMdcKeyName>
+                <includeMdcKeyName>userId</includeMdcKeyName>
+                <includeMdcKeyName>eventType</includeMdcKeyName>
+                <includeMdcKeyName>aggregateId</includeMdcKeyName>
                 <fieldNames>
                     <timestamp>timestamp</timestamp>
                     <version>[ignore]</version>
                     <levelValue>[ignore]</levelValue>
                 </fieldNames>
+                <!-- Custom fields cho ClickHouse -->
+                <customFields>
+                    {"service":"identity-service","logType":"application"}
+                </customFields>
             </encoder>
         </appender>
+
+        <!-- ======== AUDIT Appender: business audit logs → ClickHouse ========
+             Audit log được tách riêng qua Marker "AUDIT" hoặc logger "audit".
+             Filebeat/Fluentd/Vektor → ClickHouse table: audit_log
+        -->
+        <appender name="AUDIT_JSON" class="ch.qos.logback.core.ConsoleAppender">
+            <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+                <includeContext>false</includeContext>
+                <includeMdcKeyName>traceId</includeMdcKeyName>
+                <includeMdcKeyName>userId</includeMdcKeyName>
+                <includeMdcKeyName>eventType</includeMdcKeyName>
+                <includeMdcKeyName>aggregateId</includeMdcKeyName>
+                <includeMdcKeyName>clientIp</includeMdcKeyName>
+                <includeMdcKeyName>userAgent</includeMdcKeyName>
+                <includeMdcKeyName>outcome</includeMdcKeyName>
+                <fieldNames>
+                    <timestamp>@timestamp</timestamp>
+                    <version>[ignore]</version>
+                    <levelValue>[ignore]</levelValue>
+                    <logger>[ignore]</logger>
+                    <thread>[ignore]</thread>
+                </fieldNames>
+                <customFields>
+                    {"service":"identity-service","logType":"audit","target":"clickhouse"}
+                </customFields>
+            </encoder>
+        </appender>
+
+        <!-- Audit logger: ghi các sự kiện nghiệp vụ quan trọng vào ClickHouse -->
+        <logger name="audit" level="INFO" additivity="false">
+            <appender-ref ref="AUDIT_JSON"/>
+        </logger>
+
+        <!-- Application logs → JSON (không audit) -->
         <root level="INFO">
             <appender-ref ref="JSON"/>
         </root>
+
+        <logger name="com.dts.identity" level="INFO"/>
+        <logger name="com.dts.identity.config.OutboxScheduler" level="INFO"/>
+        <logger name="org.springframework.kafka" level="WARN"/>
+        <logger name="org.apache.kafka" level="WARN"/>
     </springProfile>
+
 </configuration>

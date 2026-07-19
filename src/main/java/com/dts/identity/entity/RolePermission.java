@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.io.Serializable;
+import java.time.Instant;
 import java.util.UUID;
 
 @Entity
@@ -23,6 +24,10 @@ public class RolePermission {
     @Id
     @Column(name = "permission_id", nullable = false)
     private UUID permissionId;
+
+    @Column(name = "assigned_at", nullable = false)
+    @Builder.Default
+    private Instant assignedAt = Instant.now();
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "role_id", insertable = false, updatable = false)

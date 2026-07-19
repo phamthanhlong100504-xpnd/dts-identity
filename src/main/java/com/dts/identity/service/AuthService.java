@@ -4,6 +4,7 @@ import com.dts.identity.config.SecurityProperties;
 import com.dts.identity.dto.request.*;
 import com.dts.identity.dto.response.AuthResponse;
 import com.dts.identity.dto.response.AuthResponse.UserInfo;
+import com.dts.identity.dto.response.TokenValidationResponse;
 import com.dts.identity.entity.*;
 import com.dts.identity.entity.VerificationCode.VerificationType;
 import com.dts.identity.exception.BusinessException;
@@ -20,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
 import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -39,13 +41,27 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtProvider jwtProvider;
     private final SecurityProperties securityProperties;
+    private final OutboxPublisher outboxPublisher;
+
+    private static final String INVALID_CREDENTIALS = "Invalid username or password";
+    private static final SecureRandom SECURE_RANDOM = new SecureRandom();
 
     // ==================== LOGIN ====================
 
     @Transactional
     public AuthResponse login(LoginRequest request) {
-        User user = userRepository.findByIdentifier(request.username())
-                .orElseThrow(() -> new BusinessException("User not found", HttpStatus.UNAUTHORIZED));
+        // Unified error message to prevent user enumeration
+        // (không phân biệt "user not found" vs "wrong password")
+        Optional<User> userOpt = userRepository.findByIdentifier(request.username());
+
+        if (userOpt.isEmpty()) {
+            // Simulate password check to prevent timing-based enumeration
+            passwordEncoder.matches(request.password(),
+                    "$2a$12$dummyDummyDummyDummyDummyDummyDummyDummyDummyDummy");
+            throw new BusinessException(INVALID_CREDENTIALS, HttpStatus.UNAUTHORIZED);
+        }
+
+        User user = userOpt.get();
 
         // Check brute-force lock
         if (user.isLocked()) {
@@ -54,15 +70,15 @@ public class AuthService {
                     HttpStatus.TOO_MANY_REQUESTS);
         }
 
-        // Check banned
+        // Check banned (same message as invalid credentials to not leak status)
         if (user.getStatus() == User.UserStatus.BANNED) {
-            throw new BusinessException("Account has been banned", HttpStatus.FORBIDDEN);
+            throw new BusinessException(INVALID_CREDENTIALS, HttpStatus.UNAUTHORIZED);
         }
 
         // Verify password
         if (!passwordEncoder.matches(request.password(), user.getPassword())) {
             incrementFailedAttempts(user);
-            throw new BusinessException("Invalid credentials", HttpStatus.UNAUTHORIZED);
+            throw new BusinessException(INVALID_CREDENTIALS, HttpStatus.UNAUTHORIZED);
         }
 
         // Clear failed attempts on success
@@ -90,7 +106,7 @@ public class AuthService {
         }
 
         // Assign STUDENT role by default
-        Role studentRole = roleRepository.findByName(Role.RoleType.ROLE_STUDENT)
+        Role studentRole = roleRepository.findByName(Role.ROLE_STUDENT)
                 .orElseThrow(() -> new BusinessException("Default role not found", HttpStatus.INTERNAL_SERVER_ERROR));
 
         User user = User.builder()
@@ -187,7 +203,7 @@ public class AuthService {
             throw new BusinessException("Too many failed attempts. Please request a new code.");
         }
 
-        if (!hashToken(request.code()).equals(code.getCodeHash())) {
+        if (!constantTimeEquals(hashToken(request.code()), code.getCodeHash())) {
             code.setAttempts(code.getAttempts() + 1);
             verificationCodeRepository.save(code);
             throw new BusinessException("Invalid verification code");
@@ -234,6 +250,133 @@ public class AuthService {
         log.info("Password changed for user: id={}", userId);
     }
 
+    // ==================== FORGOT PASSWORD ====================
+
+    @Transactional
+    public void forgotPassword(ForgotPasswordRequest request) {
+        // Always return success regardless of whether user exists (security best practice)
+        Optional<User> userOpt = userRepository.findByIdentifier(request.identifier());
+        if (userOpt.isEmpty()) {
+            log.info("Forgot password requested for non-existent identifier: {}", request.identifier());
+            return;
+        }
+
+        User user = userOpt.get();
+        generateAndSendVerificationCode(user, VerificationType.RESET_PASSWORD);
+
+        // Write to outbox for async Kafka delivery
+        Map<String, Object> payload = new HashMap<>();
+        payload.put("userId", user.getId().toString());
+        payload.put("email", user.getEmail());
+        payload.put("username", user.getUsername());
+        outboxPublisher.publish("auth-events", "password-reset-requested",
+                user.getId().toString(), "USER", payload);
+
+        log.info("Password reset OTP generated: userId={}", user.getId());
+    }
+
+    // ==================== RESET PASSWORD ====================
+
+    @Transactional
+    public void resetPassword(ResetPasswordRequest request) {
+        User user = userRepository.findByIdentifier(request.identifier())
+                .orElseThrow(() -> new BusinessException("User not found"));
+
+        // Verify OTP first
+        VerificationCode code = verificationCodeRepository
+                .findLatestByUserIdAndType(user.getId(), VerificationType.RESET_PASSWORD)
+                .orElseThrow(() -> new BusinessException("No verification code found. Please request a new one."));
+
+        if (!code.isValid()) {
+            throw new BusinessException("Verification code has expired or already used");
+        }
+
+        if (code.getAttempts() >= securityProperties.verificationCode().maxAttempts()) {
+            throw new BusinessException("Too many failed attempts. Please request a new code.");
+        }
+
+        if (!constantTimeEquals(hashToken(request.code()), code.getCodeHash())) {
+            code.setAttempts(code.getAttempts() + 1);
+            verificationCodeRepository.save(code);
+            throw new BusinessException("Invalid verification code");
+        }
+
+        // Mark OTP used
+        code.setUsedAt(Instant.now());
+        verificationCodeRepository.save(code);
+
+        // Update password and revoke all sessions
+        user.setPassword(passwordEncoder.encode(request.newPassword()));
+        user.setFailedLoginAttempts(0);
+        user.setLockedUntil(null);
+        userRepository.save(user);
+
+        refreshTokenRepository.revokeAllByUserId(user.getId(), Instant.now());
+
+        // Write to outbox for async Kafka delivery
+        Map<String, Object> payload = new HashMap<>();
+        payload.put("userId", user.getId().toString());
+        payload.put("username", user.getUsername());
+        outboxPublisher.publish("auth-events", "password-reset-completed",
+                user.getId().toString(), "USER", payload);
+
+        log.info("Password reset completed: userId={}", user.getId());
+    }
+
+    // ==================== RESEND VERIFICATION ====================
+
+    @Transactional
+    public void resendVerification(ResendVerificationRequest request) {
+        User user = userRepository.findByIdentifier(request.identifier())
+                .orElseThrow(() -> new BusinessException("User not found"));
+
+        VerificationType type;
+        try {
+            type = VerificationType.valueOf(request.type().toUpperCase());
+        } catch (IllegalArgumentException e) {
+            throw new BusinessException("Invalid verification type: " + request.type());
+        }
+
+        // Generate new OTP (old ones are auto-marked as used inside generateAndSendVerificationCode)
+        generateAndSendVerificationCode(user, type);
+
+        // Write to outbox for async Kafka delivery
+        Map<String, Object> payload = new HashMap<>();
+        payload.put("userId", user.getId().toString());
+        payload.put("email", user.getEmail());
+        payload.put("username", user.getUsername());
+        payload.put("verificationType", type.name());
+        outboxPublisher.publish("auth-events", "verification-code-resent",
+                user.getId().toString(), "USER", payload);
+
+        log.info("Verification code resent: userId={}, type={}", user.getId(), type);
+    }
+
+    // ==================== TOKEN VALIDATION (for API Gateway) ====================
+
+    public TokenValidationResponse validateToken(String token) {
+        if (token == null || token.isBlank()) {
+            return TokenValidationResponse.invalid();
+        }
+
+        try {
+            Claims claims = jwtProvider.validateAccessToken(token);
+            if (jwtProvider.isTokenExpired(claims)) {
+                return TokenValidationResponse.invalid();
+            }
+
+            UUID userId = jwtProvider.getUserId(claims);
+            String username = claims.get("username", String.class);
+            List<String> roles = jwtProvider.getRoles(claims);
+            List<String> permissions = jwtProvider.getPermissions(claims);
+
+            return TokenValidationResponse.valid(userId, username, roles, permissions);
+        } catch (Exception e) {
+            log.debug("Token validation failed: {}", e.getMessage());
+            return TokenValidationResponse.invalid();
+        }
+    }
+
     // ==================== INTERNAL HELPERS ====================
 
     private AuthResponse buildAuthResponse(User user, String deviceInfo) {
@@ -248,7 +391,7 @@ public class AuthService {
                 .userId(user.getId())
                 .tokenHash(hashToken(refreshToken))
                 .deviceInfo(deviceInfo)
-                .expiresAt(Instant.now().plusMillis(jwtProvider.getAccessExpirationMs()))
+                .expiresAt(Instant.now().plusMillis(jwtProvider.getRefreshExpirationMs()))
                 .build();
         refreshTokenRepository.save(tokenEntity);
 
@@ -262,13 +405,15 @@ public class AuthService {
 
     private List<String> getUserRoles(UUID userId) {
         return userRoleRepository.findByUserId(userId).stream()
-                .map(ur -> ur.getRole().getName().name())
+                .filter(ur -> ur.getRole() != null)  // Bỏ qua role đã soft-delete
+                .map(ur -> ur.getRole().getName())
                 .collect(Collectors.toList());
     }
 
     private List<String> getUserPermissions(UUID userId) {
         return userRoleRepository.findByUserId(userId).stream()
                 .flatMap(ur -> rolePermissionRepository.findByRoleId(ur.getRoleId()).stream())
+                .filter(rp -> rp.getPermission() != null)  // Bỏ qua permission đã soft-delete
                 .map(rp -> rp.getPermission().getName())
                 .distinct()
                 .collect(Collectors.toList());
@@ -287,21 +432,49 @@ public class AuthService {
     }
 
     private void generateAndSendVerificationCode(User user, VerificationType type) {
-        // In production, send via Email/SMS. For now, store in DB.
-        // The actual OTP is logged/hashed; external notification service handles delivery.
         verificationCodeRepository.markAllUsedByUserIdAndType(user.getId(), type);
 
+        // Sinh OTP 6 chữ số (0-9), dễ nhập qua SMS/email
+        String otp = generateNumericOtp();
         VerificationCode code = VerificationCode.builder()
                 .userId(user.getId())
-                .codeHash(hashToken(UUID.randomUUID().toString().substring(0, 8)))
+                .codeHash(hashToken(otp))
                 .type(type)
                 .expiresAt(Instant.now().plusSeconds(
                         securityProperties.verificationCode().expirationMinutes() * 60L))
                 .build();
         verificationCodeRepository.save(code);
 
-        // TODO: Publish event to Kafka topic `auth-events` for email/SMS dispatch
+        // Write to outbox for async Kafka delivery to Notification Service
+        // (OTP được gửi kèm trong payload để Notification Service gửi SMS/email)
+        Map<String, Object> eventPayload = new HashMap<>();
+        eventPayload.put("userId", user.getId().toString());
+        eventPayload.put("email", user.getEmail());
+        eventPayload.put("username", user.getUsername());
+        eventPayload.put("verificationType", type.name());
+        eventPayload.put("otp", otp);  // Notification Service sẽ xóa sau khi gửi
+        outboxPublisher.publish("auth-events", "verification-code-generated",
+                user.getId().toString(), "USER", eventPayload);
+
         log.info("Verification code generated: userId={}, type={}", user.getId(), type);
+    }
+
+    /**
+     * Sinh mã OTP 6 chữ số ngẫu nhiên (cryptographically secure).
+     */
+    private String generateNumericOtp() {
+        int otp = 100000 + SECURE_RANDOM.nextInt(900000); // 100000 - 999999
+        return String.valueOf(otp);
+    }
+
+    /**
+     * So sánh 2 chuỗi hash theo constant-time để chống timing attack.
+     */
+    private boolean constantTimeEquals(String a, String b) {
+        if (a == null || b == null) return false;
+        return MessageDigest.isEqual(
+                a.getBytes(StandardCharsets.UTF_8),
+                b.getBytes(StandardCharsets.UTF_8));
     }
 
     private String hashToken(String token) {
