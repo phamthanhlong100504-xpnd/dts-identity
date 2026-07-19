@@ -2,8 +2,7 @@ package com.dts.identity.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.JdbcTypeCode;
-import org.hibernate.type.SqlTypes;
+
 
 import java.time.Instant;
 import java.util.UUID;
@@ -28,8 +27,7 @@ public class RefreshToken {
     @Column(name = "token_hash", nullable = false)
     private String tokenHash;
 
-    @JdbcTypeCode(SqlTypes.JSON)
-    @Column(name = "device_info", columnDefinition = "jsonb")
+    @Column(name = "device_info", columnDefinition = "text")
     private String deviceInfo;
 
     @Column(name = "expires_at", nullable = false)

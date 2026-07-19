@@ -33,6 +33,7 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 // Public endpoints
                 .requestMatchers("/").permitAll()
+                .requestMatchers("/api/v1/auth/logout", "/api/v1/auth/change-password").authenticated()
                 .requestMatchers("/api/v1/auth/**").permitAll()
                 .requestMatchers("/actuator/health", "/actuator/info").permitAll()
                 .requestMatchers("/api-docs/**", "/swagger-ui/**").permitAll()

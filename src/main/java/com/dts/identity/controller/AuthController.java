@@ -6,6 +6,9 @@ import com.dts.identity.dto.response.AuthResponse;
 import com.dts.identity.dto.response.TokenValidationResponse;
 import com.dts.identity.service.AuthService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.enums.ParameterIn;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -48,6 +51,7 @@ public class AuthController {
 
     @PostMapping("/logout")
     @Operation(summary = "Logout - revoke all refresh tokens for the authenticated user")
+    @SecurityRequirement(name = "BearerAuth")
     public ResponseEntity<ApiResponse<Void>> logout(Authentication authentication) {
         UUID userId = (UUID) authentication.getPrincipal();
         authService.logout(userId);
@@ -63,6 +67,7 @@ public class AuthController {
 
     @PostMapping("/change-password")
     @Operation(summary = "Change password for authenticated user")
+    @SecurityRequirement(name = "BearerAuth")
     public ResponseEntity<ApiResponse<Void>> changePassword(
             Authentication authentication,
             @Valid @RequestBody ChangePasswordRequest request) {
@@ -94,11 +99,18 @@ public class AuthController {
 
     @GetMapping("/validate")
     @Operation(summary = "Validate access token (for API Gateway)")
+    @SecurityRequirement(name = "BearerAuth")
     public ResponseEntity<ApiResponse<TokenValidationResponse>> validateToken(
+            @Parameter(hidden = true)
             @RequestHeader(value = "Authorization", required = false) String authHeader) {
         String token = null;
-        if (authHeader != null && authHeader.startsWith("Bearer ")) {
-            token = authHeader.substring(7);
+        if (authHeader != null) {
+            if (authHeader.startsWith("Bearer ")) {
+                token = authHeader.substring(7);
+            } else {
+                // Fallback: treat raw value as token (for Swagger convenience)
+                token = authHeader;
+            }
         }
         TokenValidationResponse result = authService.validateToken(token);
         return ResponseEntity.ok(ApiResponse.ok(result));
