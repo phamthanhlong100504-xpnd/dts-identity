@@ -1,7 +1,6 @@
 package com.dts.identity.controller;
 
-import com.dts.identity.dto.request.AssignRoleRequest;
-import com.dts.identity.dto.request.UpdateUserRequest;
+import com.dts.identity.dto.request.*;
 import com.dts.identity.dto.response.ApiResponse;
 import com.dts.identity.dto.response.PermissionResponse;
 import com.dts.identity.dto.response.RoleResponse;
@@ -17,6 +16,7 @@ import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -34,10 +34,13 @@ public class AdminController {
     // ==================== USER MANAGEMENT ====================
 
     @GetMapping("/users")
-    @Operation(summary = "List all users (paginated)")
+    @Operation(summary = "List users with optional search and filter (paginated)")
     public ResponseEntity<ApiResponse<Page<UserResponse>>> listUsers(
-            @PageableDefault(size = 20) Pageable pageable) {
-        return ResponseEntity.ok(ApiResponse.ok(userService.listUsers(pageable)));
+            @PageableDefault(size = 20) Pageable pageable,
+            @RequestParam(required = false) String search,
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) String role) {
+        return ResponseEntity.ok(ApiResponse.ok(userService.searchUsers(search, status, role, pageable)));
     }
 
     @GetMapping("/users/{id}")
@@ -108,5 +111,87 @@ public class AdminController {
             @PathVariable UUID roleId, @PathVariable UUID permissionId) {
         userService.revokePermissionFromRole(roleId, permissionId);
         return ResponseEntity.ok(ApiResponse.ok("Permission revoked from role", null));
+    }
+
+    // ==================== USER CREATION & STATUS ====================
+
+    @PostMapping("/users")
+    @Operation(summary = "Create a new user (admin only, no verification needed)")
+    public ResponseEntity<ApiResponse<UserResponse>> createUser(@Valid @RequestBody CreateUserRequest request) {
+        UserResponse response = userService.createUser(request);
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(ApiResponse.ok("User created", response));
+    }
+
+    @PatchMapping("/users/{id}/status")
+    @Operation(summary = "Update user status (ACTIVE, LOCKED, BANNED)")
+    public ResponseEntity<ApiResponse<UserResponse>> updateUserStatus(
+            @PathVariable UUID id,
+            @Valid @RequestBody UpdateUserStatusRequest request) {
+        return ResponseEntity.ok(ApiResponse.ok(userService.updateUserStatus(id, request)));
+    }
+
+    // ==================== USER ROLES ====================
+
+    @GetMapping("/users/{id}/roles")
+    @Operation(summary = "Get roles for a specific user")
+    public ResponseEntity<ApiResponse<List<RoleResponse>>> getUserRoles(@PathVariable UUID id) {
+        return ResponseEntity.ok(ApiResponse.ok(userService.getUserRoles(id)));
+    }
+
+    // ==================== ROLE CRUD ====================
+
+    @PostMapping("/roles")
+    @Operation(summary = "Create a new role")
+    public ResponseEntity<ApiResponse<RoleResponse>> createRole(
+            @Valid @RequestBody CreateRoleRequest request,
+            Authentication authentication) {
+        UUID actorId = (UUID) authentication.getPrincipal();
+        RoleResponse response = userService.createRole(request, actorId);
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(ApiResponse.ok("Role created", response));
+    }
+
+    @DeleteMapping("/roles/{id}")
+    @Operation(summary = "Soft-delete a role (preserves history)")
+    public ResponseEntity<ApiResponse<Void>> deleteRole(
+            @PathVariable UUID id,
+            Authentication authentication) {
+        UUID actorId = (UUID) authentication.getPrincipal();
+        userService.deleteRole(id, actorId);
+        return ResponseEntity.ok(ApiResponse.ok("Role deleted", null));
+    }
+
+    // ==================== PERMISSION CRUD ====================
+
+    @PostMapping("/permissions")
+    @Operation(summary = "Create a new permission")
+    public ResponseEntity<ApiResponse<PermissionResponse>> createPermission(
+            @Valid @RequestBody CreatePermissionRequest request,
+            Authentication authentication) {
+        UUID actorId = (UUID) authentication.getPrincipal();
+        PermissionResponse response = userService.createPermission(request, actorId);
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(ApiResponse.ok("Permission created", response));
+    }
+
+    @PutMapping("/permissions/{id}")
+    @Operation(summary = "Update a permission")
+    public ResponseEntity<ApiResponse<PermissionResponse>> updatePermission(
+            @PathVariable UUID id,
+            @Valid @RequestBody UpdatePermissionRequest request,
+            Authentication authentication) {
+        UUID actorId = (UUID) authentication.getPrincipal();
+        return ResponseEntity.ok(ApiResponse.ok(userService.updatePermission(id, request, actorId)));
+    }
+
+    @DeleteMapping("/permissions/{id}")
+    @Operation(summary = "Soft-delete a permission")
+    public ResponseEntity<ApiResponse<Void>> deletePermission(
+            @PathVariable UUID id,
+            Authentication authentication) {
+        UUID actorId = (UUID) authentication.getPrincipal();
+        userService.deletePermission(id, actorId);
+        return ResponseEntity.ok(ApiResponse.ok("Permission deleted", null));
     }
 }

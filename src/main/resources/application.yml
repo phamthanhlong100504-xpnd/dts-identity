@@ -76,7 +76,9 @@ spring:
   jackson:
     serialization:
       write-dates-as-timestamps: false
-    default-property-inclusion: non_null
+    # KHÔNG dùng default-property-inclusion: non_null ở cấp global
+    # vì sẽ làm mất trường "data" trong ApiResponse.error() → gãy cấu trúc JSON đồng nhất.
+    # Thay vào đó, dùng @JsonInclude(JsonInclude.Include.NON_NULL) trên từng DTO cụ thể.
 
 # ==================== Server ====================
 server:
@@ -103,6 +105,11 @@ security:
   verification-code:
     expiration-minutes: 10
     max-attempts: 3
+
+# ==================== Outbox Pattern ====================
+outbox:
+  poll-interval-ms: 5000     # Quét PENDING events mỗi 5 giây
+  batch-size: 50             # Số event xử lý mỗi lần quét
 
 # ==================== Actuator ====================
 management:

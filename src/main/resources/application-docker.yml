@@ -1,15 +1,21 @@
-# Profile for docker-compose environment
+# Profile "docker" — kích hoạt khi SPRING_PROFILES_ACTIVE=docker
+# Override các giá trị mặc định từ application.yml bằng service name trong docker-compose network
 spring:
   datasource:
-    url: jdbc:postgresql://postgres:5432/dts_identity
-    username: postgres
-    password: postgres
+    url: jdbc:postgresql://${DB_HOST:postgres}:${DB_PORT:5432}/${DB_NAME:dts_identity}
+    username: ${DB_USERNAME:postgres}
+    password: ${DB_PASSWORD:postgres}
   data:
     redis:
-      host: redis
-      port: 6379
+      host: ${REDIS_HOST:redis}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
   kafka:
-    bootstrap-servers: kafka:9092
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:kafka:9092}
+
+server:
+  port: ${SERVER_PORT:8081}
+  shutdown: graceful
 
 logging:
   level:
