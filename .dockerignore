@@ -1,0 +1,12 @@
+target/
+.git/
+.idea/
+.vscode/
+*.md
+docs/
+plan/
+Dockerfile
+docker-compose*.yml
+.dockerignore
+.agents/
+.antigravity-ide/

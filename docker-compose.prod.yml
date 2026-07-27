@@ -1,0 +1,24 @@
+services:
+  identity-service:
+    image: ghcr.io/phamthanhlong100504-xpnd/identity-service:latest
+    container_name: dts-identity-service
+    restart: unless-stopped
+    ports:
+      - "8081:8081"
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+      - DB_HOST=dts-postgres
+      - DB_PORT=5432
+      - DB_NAME=dts_identity
+      - DB_USERNAME=postgres
+      - DB_PASSWORD=${DB_PASSWORD}
+      - REDIS_HOST=dts-redis
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=${REDIS_PASSWORD:-}
+      - KAFKA_BOOTSTRAP_SERVERS=dts-kafka:9092
+    networks:
+      - dts-network
+
+networks:
+  dts-network:
+    external: true
