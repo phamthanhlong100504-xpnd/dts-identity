@@ -6,5 +6,5 @@ target/
 .vscode/
 .claude/
 tmp-download/
-.github/
+.github/modernize/
 
