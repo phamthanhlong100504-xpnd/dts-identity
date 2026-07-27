@@ -1,0 +1,10 @@
+.env
+target/
+*.log
+.idea/
+*.iml
+.vscode/
+.claude/
+tmp-download/
+.github/
+

@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   identity-service:
     build:
@@ -10,8 +8,8 @@ services:
       - "${SERVER_PORT:-8081}:8081"
     environment:
       - SPRING_PROFILES_ACTIVE=docker
-      - DB_HOST=postgres
-      - DB_PORT=5432
+      - DB_HOST=${DB_HOST:-postgres}
+      - DB_PORT=${DB_PORT:-5432}
       - DB_NAME=${DB_NAME:-dts_identity}
       - DB_USERNAME=${DB_USERNAME:-postgres}
       - DB_PASSWORD=${DB_PASSWORD:-postgres}
@@ -22,8 +20,6 @@ services:
       - EUREKA_URI=${EUREKA_URI:-http://eureka-server:8761/eureka}
       - EUREKA_ENABLED=${EUREKA_ENABLED:-false}
     depends_on:
-      postgres:
-        condition: service_healthy
       redis:
         condition: service_started
       kafka:
@@ -96,10 +92,11 @@ services:
     depends_on:
       - zookeeper
     healthcheck:
-      test: [ "CMD", "kafka-topics", "--bootstrap-server", "127.0.0.1:9092", "--list" ]
+      test: [ "CMD", "sh", "-c", "kafka-broker-api-versions --bootstrap-server=localhost:9092 || exit 1" ]
       interval: 10s
       timeout: 5s
       retries: 5
+      start_period: 30s
     restart: unless-stopped
     networks:
       - dts-network

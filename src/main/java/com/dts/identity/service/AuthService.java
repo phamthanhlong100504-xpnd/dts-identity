@@ -58,7 +58,7 @@ public class AuthService {
             // Simulate password check to prevent timing-based enumeration
             passwordEncoder.matches(request.password(),
                     "$2a$12$dummyDummyDummyDummyDummyDummyDummyDummyDummyDummy");
-            throw new BusinessException(INVALID_CREDENTIALS, HttpStatus.UNAUTHORIZED);
+            throw BusinessException.unauthorized(INVALID_CREDENTIALS);
         }
 
         User user = userOpt.get();
@@ -72,13 +72,13 @@ public class AuthService {
 
         // Check banned (same message as invalid credentials to not leak status)
         if (user.getStatus() == User.UserStatus.BANNED) {
-            throw new BusinessException(INVALID_CREDENTIALS, HttpStatus.UNAUTHORIZED);
+            throw BusinessException.unauthorized(INVALID_CREDENTIALS);
         }
 
         // Verify password
         if (!passwordEncoder.matches(request.password(), user.getPassword())) {
             incrementFailedAttempts(user);
-            throw new BusinessException(INVALID_CREDENTIALS, HttpStatus.UNAUTHORIZED);
+            throw BusinessException.unauthorized(INVALID_CREDENTIALS);
         }
 
         // Clear failed attempts on success
@@ -96,13 +96,13 @@ public class AuthService {
     public AuthResponse register(RegisterRequest request) {
         // Check duplicates
         if (userRepository.existsByUsernameAndDeletedAtIsNull(request.username())) {
-            throw new BusinessException("Username already taken");
+            throw BusinessException.conflict("Username already taken");
         }
         if (userRepository.existsByEmailAndDeletedAtIsNull(request.email())) {
-            throw new BusinessException("Email already registered");
+            throw BusinessException.conflict("Email already registered");
         }
         if (userRepository.existsByPhoneNumberAndDeletedAtIsNull(request.phoneNumber())) {
-            throw new BusinessException("Phone number already registered");
+            throw BusinessException.conflict("Phone number already registered");
         }
 
         // Assign STUDENT role by default
@@ -142,7 +142,7 @@ public class AuthService {
         try {
             claims = jwtProvider.validateRefreshToken(request.refreshToken());
         } catch (Exception e) {
-            throw new BusinessException("Invalid or expired refresh token", HttpStatus.UNAUTHORIZED);
+            throw BusinessException.unauthorized("Invalid or expired refresh token");
         }
 
         // Verify refresh token exists in DB and is not revoked
