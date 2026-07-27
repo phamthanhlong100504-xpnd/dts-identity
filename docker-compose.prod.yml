@@ -7,15 +7,24 @@ services:
       - "8081:8081"
     environment:
       - SPRING_PROFILES_ACTIVE=prod
-      - DB_HOST=dts-postgres
+      - DB_HOST=postgres
       - DB_PORT=5432
       - DB_NAME=dts_identity
       - DB_USERNAME=postgres
-      - DB_PASSWORD=${DB_PASSWORD}
-      - REDIS_HOST=dts-redis
+      - DB_PASSWORD=${DB_PASSWORD:-postgres}
+      - REDIS_HOST=redis
       - REDIS_PORT=6379
       - REDIS_PASSWORD=${REDIS_PASSWORD:-}
-      - KAFKA_BOOTSTRAP_SERVERS=dts-kafka:9092
+      - KAFKA_BOOTSTRAP_SERVERS=media-kafka:9092
+    networks:
+      - dts-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
     networks:
       - dts-network
 
