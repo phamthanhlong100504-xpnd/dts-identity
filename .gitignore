@@ -1,10 +1,35 @@
+# Environment variables
 .env
+*.env
+
+# Target & Build artifacts
 target/
+*.jar
+*.war
+
+# Logs
 *.log
+logs/
+
+# IDE & Editor files
 .idea/
 *.iml
 .vscode/
 .claude/
-tmp-download/
-.github/modernize/
+*.swp
+*.swo
 
+# OS files
+.DS_Store
+Thumbs.db
+
+# Temporary & Download files
+tmp-download/
+*.xlsx
+*.xls
+*.doc
+*.docx
+*.pdf
+
+# Redundant docker folder
+docker/
