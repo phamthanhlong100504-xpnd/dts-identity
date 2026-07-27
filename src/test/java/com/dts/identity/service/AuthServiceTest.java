@@ -69,6 +69,11 @@ class AuthServiceTest {
                 .phoneNumber("0123456789")
                 .status(User.UserStatus.ACTIVE)
                 .build();
+
+        lenient().when(securityProperties.bruteForce())
+                .thenReturn(new SecurityProperties.BruteForceProperties(5, 15));
+        lenient().when(securityProperties.verificationCode())
+                .thenReturn(new SecurityProperties.VerificationCodeProperties(15, 3));
     }
 
     @Test
@@ -88,7 +93,6 @@ class AuthServiceTest {
         when(verificationCodeRepository.markAllUsedByUserIdAndType(any(), any())).thenReturn(0);
         when(verificationCodeRepository.save(any(VerificationCode.class))).thenReturn(new VerificationCode());
         when(userRoleRepository.findByUserId(userId)).thenReturn(List.of());
-        when(rolePermissionRepository.findByRoleId(any())).thenReturn(List.of());
         when(jwtProvider.generateAccessToken(any(), anyString(), anyList(), anyList()))
                 .thenReturn("access-token");
         when(jwtProvider.generateRefreshToken(any()))
@@ -169,7 +173,6 @@ class AuthServiceTest {
         when(userRepository.findByIdentifier("testuser")).thenReturn(Optional.of(testUser));
         when(passwordEncoder.matches(RAW_PASSWORD, ENCODED_PASSWORD)).thenReturn(true);
         when(userRoleRepository.findByUserId(userId)).thenReturn(List.of());
-        when(rolePermissionRepository.findByRoleId(any())).thenReturn(List.of());
         when(jwtProvider.generateAccessToken(any(), anyString(), anyList(), anyList()))
                 .thenReturn("access-token");
         when(jwtProvider.generateRefreshToken(any()))
@@ -195,7 +198,6 @@ class AuthServiceTest {
 
         when(userRepository.findByIdentifier("testuser")).thenReturn(Optional.of(testUser));
         when(passwordEncoder.matches("WrongPass", ENCODED_PASSWORD)).thenReturn(false);
-        when(passwordEncoder.matches(eq("WrongPass"), anyString())).thenReturn(false);
 
         assertThrows(BusinessException.class, () -> authService.login(request));
         verify(userRepository).save(argThat(user -> user.getFailedLoginAttempts() > 0));
