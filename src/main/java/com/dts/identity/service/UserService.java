@@ -74,9 +74,12 @@ public class UserService {
             }
             user.setEmail(request.email());
         }
-        if (request.fullName() != null) user.setFullName(request.fullName());
-        if (request.birthOfDate() != null) user.setBirthOfDate(request.birthOfDate());
-        if (request.phoneNumber() != null) user.setPhoneNumber(request.phoneNumber());
+        if (request.fullName() != null)
+            user.setFullName(request.fullName());
+        if (request.birthOfDate() != null)
+            user.setBirthOfDate(request.birthOfDate());
+        if (request.phoneNumber() != null)
+            user.setPhoneNumber(request.phoneNumber());
         if (request.status() != null) {
             try {
                 user.setStatus(User.UserStatus.valueOf(request.status().toUpperCase()));
@@ -132,7 +135,7 @@ public class UserService {
 
     public List<RoleResponse> getUserRoles(UUID userId) {
         return userRoleRepository.findByUserId(userId).stream()
-                .filter(ur -> ur.getRole() != null)  // Bỏ qua role đã bị soft-delete
+                .filter(ur -> ur.getRole() != null) // Bỏ qua role đã bị soft-delete
                 .map(ur -> {
                     Role role = ur.getRole();
                     List<String> permissions = rolePermissionRepository.findByRoleId(role.getId()).stream()
@@ -203,7 +206,7 @@ public class UserService {
                 .fullName(request.fullName())
                 .birthOfDate(request.birthOfDate())
                 .phoneNumber(request.phoneNumber())
-                .status(User.UserStatus.ACTIVE)  // Admin-created users are active immediately
+                .status(User.UserStatus.ACTIVE) // Admin-created users are active immediately
                 .emailVerifiedAt(Instant.now())
                 .build();
         user = userRepository.save(user);
@@ -281,8 +284,7 @@ public class UserService {
                         cb.like(cb.lower(root.get("username")), pattern),
                         cb.like(cb.lower(root.get("email")), pattern),
                         cb.like(cb.lower(root.get("fullName")), pattern),
-                        cb.like(cb.lower(root.get("phoneNumber")), pattern)
-                );
+                        cb.like(cb.lower(root.get("phoneNumber")), pattern));
                 predicates.add(searchPredicate);
             }
 
@@ -384,8 +386,10 @@ public class UserService {
             }
             permission.setName(request.name());
         }
-        if (request.displayName() != null) permission.setDisplayName(request.displayName());
-        if (request.resource() != null) permission.setResource(request.resource());
+        if (request.displayName() != null)
+            permission.setDisplayName(request.displayName());
+        if (request.resource() != null)
+            permission.setResource(request.resource());
 
         permission.setUpdatedBy(actorId);
         Permission saved = permissionRepository.save(permission);
@@ -407,8 +411,8 @@ public class UserService {
         permission.setDeletedAt(Instant.now());
         permission.setUpdatedBy(actorId);
         // Cleanup role_permissions associations (giữ audit trail)
-        rolePermissionRepository.findByPermissionId(permissionId).forEach(rp ->
-                rolePermissionRepository.deleteByRoleIdAndPermissionId(rp.getRoleId(), permissionId));
+        rolePermissionRepository.findByPermissionId(permissionId)
+                .forEach(rp -> rolePermissionRepository.deleteByRoleIdAndPermissionId(rp.getRoleId(), permissionId));
         permissionRepository.save(permission);
 
         log.info("Permission soft-deleted: id={}, name={}, deletedBy={}", permissionId, permission.getName(), actorId);
