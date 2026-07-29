@@ -41,6 +41,7 @@ class AuthServiceTest {
     @Mock private JwtProvider jwtProvider;
     @Mock private SecurityProperties securityProperties;
     @Mock private OutboxPublisher outboxPublisher;
+    @Mock private EmailService emailService;
 
     @InjectMocks
     private AuthService authService;

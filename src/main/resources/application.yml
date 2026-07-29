@@ -79,6 +79,22 @@ spring:
       user-events: user-events
       auth-events: auth-events
 
+  # ==================== Mail / SMTP ====================
+  mail:
+    host: ${SPRING_MAIL_HOST:smtp.gmail.com}
+    port: ${SPRING_MAIL_PORT:587}
+    username: ${SPRING_MAIL_USERNAME:noreply@dts.com}
+    password: ${SPRING_MAIL_PASSWORD:.Y+AoVC.N[#GO1lj}
+    properties:
+      mail:
+        smtp:
+          auth: ${SPRING_MAIL_PROPERTIES_MAIL_SMTP_AUTH:true}
+          starttls:
+            enable: ${SPRING_MAIL_PROPERTIES_MAIL_SMTP_STARTTLS_ENABLE:true}
+          connectiontimeout: 5000
+          timeout: 5000
+          writetimeout: 5000
+
   # ==================== Jackson ====================
   jackson:
     serialization:
@@ -165,3 +181,11 @@ eureka:
     enabled: ${EUREKA_ENABLED:false}
   instance:
     prefer-ip-address: true
+
+# ==================== App Mail Settings ====================
+app:
+  mail:
+    enabled: ${APP_MAIL_ENABLED:true}
+    from: ${APP_MAIL_FROM:noreply@dts.com}
+    sender-name: ${APP_MAIL_SENDER_NAME:DTS Identity}
+

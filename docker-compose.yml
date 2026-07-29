@@ -19,6 +19,13 @@ services:
       - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
       - EUREKA_URI=${EUREKA_URI:-http://eureka-server:8761/eureka}
       - EUREKA_ENABLED=${EUREKA_ENABLED:-false}
+      - SPRING_MAIL_HOST=${SPRING_MAIL_HOST:-smtp.gmail.com}
+      - SPRING_MAIL_PORT=${SPRING_MAIL_PORT:-587}
+      - SPRING_MAIL_USERNAME=${SPRING_MAIL_USERNAME:-noreply@dts.com}
+      - SPRING_MAIL_PASSWORD=${SPRING_MAIL_PASSWORD:-.Y+AoVC.N[#GO1lj}
+      - APP_MAIL_ENABLED=${APP_MAIL_ENABLED:-true}
+      - APP_MAIL_FROM=${APP_MAIL_FROM:-noreply@dts.com}
+      - APP_MAIL_SENDER_NAME=${APP_MAIL_SENDER_NAME:-DTS Identity}
     depends_on:
       redis:
         condition: service_started

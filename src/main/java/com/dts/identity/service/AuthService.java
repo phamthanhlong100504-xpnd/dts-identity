@@ -42,6 +42,7 @@ public class AuthService {
     private final JwtProvider jwtProvider;
     private final SecurityProperties securityProperties;
     private final OutboxPublisher outboxPublisher;
+    private final EmailService emailService;
 
     private static final String INVALID_CREDENTIALS = "Invalid username or password";
     private static final SecureRandom SECURE_RANDOM = new SecureRandom();
@@ -455,6 +456,9 @@ public class AuthService {
         eventPayload.put("otp", otp);  // Notification Service sẽ xóa sau khi gửi
         outboxPublisher.publish("auth-events", "verification-code-generated",
                 user.getId().toString(), "USER", eventPayload);
+
+        // Direct SMTP Async Email Send
+        emailService.sendOtpEmailAsync(user.getEmail(), user.getUsername(), otp, type);
 
         log.info("Verification code generated: userId={}, type={}", user.getId(), type);
     }
