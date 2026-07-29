@@ -1,3 +1,4 @@
+
 spring:
   application:
     name: identity-service
@@ -53,6 +54,12 @@ spring:
           max-active: 16
           max-idle: 8
           min-idle: 4
+  
+  main:
+    lazy-initialization: true # Chỉ tải các Bean khi cần thiết, giúp giảm RAM lúc khởi động
+    
+  jmx:
+    enabled: false # Tắt JMX (Java Management 
 
   # ==================== Kafka ====================
   kafka:
@@ -84,6 +91,9 @@ spring:
 server:
   port: ${SERVER_PORT:8081}
   shutdown: graceful
+  tomcat:
+    threads:
+      max: 50
 
 # ==================== JWT Configuration ====================
 jwt:

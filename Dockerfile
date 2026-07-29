@@ -7,7 +7,8 @@ COPY src src
 RUN mvn package -DskipTests -B
 
 # Stage 2: Runtime image (JRE alpine)
-FROM eclipse-temurin:21-jre-alpine AS runtime
+# FROM eclipse-temurin:21-jre-alpine AS runtime
+FROM ibm-semeru-runtimes:open-21-jre AS runtime
 WORKDIR /app
 RUN addgroup -S dts && adduser -S dts -G dts
 COPY --from=builder /app/target/*.jar app.jar

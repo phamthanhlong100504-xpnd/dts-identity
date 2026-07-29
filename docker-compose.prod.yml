@@ -7,7 +7,7 @@ services:
       - "8081:8081"
     environment:
       - SPRING_PROFILES_ACTIVE=prod
-      - JAVA_TOOL_OPTIONS=-Xms64m -Xmx256m -XX:+UseContainerSupport
+      - JAVA_TOOL_OPTIONS=-Xms64m -Xmx128m -XX:+UseSerialGC -XX:MaxMetaspaceSize=128m -Xss512k
       - DB_HOST=postgres
       - DB_PORT=5432
       - DB_NAME=dts_identity
