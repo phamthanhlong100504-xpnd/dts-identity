@@ -10,7 +10,7 @@ RUN mvn package -DskipTests -B
 # FROM eclipse-temurin:21-jre-alpine AS runtime
 FROM ibm-semeru-runtimes:open-21-jre AS runtime
 WORKDIR /app
-RUN addgroup -S dts && adduser -S dts -G dts
+RUN groupadd -r dts && useradd -r -g dts -s /bin/false dts
 COPY --from=builder /app/target/*.jar app.jar
 RUN chown -R dts:dts /app
 USER dts

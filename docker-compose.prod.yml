@@ -17,7 +17,7 @@ services:
       - REDIS_PORT=6379
       - REDIS_PASSWORD=${REDIS_PASSWORD:-}
       - KAFKA_BOOTSTRAP_SERVERS=media-kafka:9092
-    mem_limit: 170m
+    mem_limit: 200m
     networks:
       - dts-network
 
