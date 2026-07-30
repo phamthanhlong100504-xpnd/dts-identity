@@ -32,15 +32,29 @@ public class JwtProvider {
         if (secret == null || secret.isBlank()) {
             throw new IllegalArgumentException("JWT secret must not be empty");
         }
+        byte[] bytes;
         try {
-            return Decoders.BASE64.decode(secret);
+            bytes = Decoders.BASE64.decode(secret);
         } catch (Exception e1) {
             try {
-                return Decoders.BASE64URL.decode(secret);
+                bytes = Decoders.BASE64URL.decode(secret);
             } catch (Exception e2) {
-                return secret.getBytes(java.nio.charset.StandardCharsets.UTF_8);
+                bytes = secret.getBytes(java.nio.charset.StandardCharsets.UTF_8);
             }
         }
+        if (bytes.length < 32) {
+            try {
+                java.security.MessageDigest sha256 = java.security.MessageDigest.getInstance("SHA-256");
+                bytes = sha256.digest(bytes);
+            } catch (java.security.NoSuchAlgorithmException e) {
+                byte[] padded = new byte[32];
+                for (int i = 0; i < 32; i++) {
+                    padded[i] = bytes[i % bytes.length];
+                }
+                bytes = padded;
+            }
+        }
+        return bytes;
     }
 
     public String generateAccessToken(UUID userId, String username, List<String> roles, List<String> permissions) {
