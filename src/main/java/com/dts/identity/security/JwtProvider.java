@@ -21,11 +21,26 @@ public class JwtProvider {
     private final String issuer;
 
     public JwtProvider(JwtProperties jwtProperties) {
-        this.accessKey = Keys.hmacShaKeyFor(Decoders.BASE64.decode(jwtProperties.accessToken().secret()));
-        this.refreshKey = Keys.hmacShaKeyFor(Decoders.BASE64.decode(jwtProperties.refreshToken().secret()));
+        this.accessKey = Keys.hmacShaKeyFor(decodeSecret(jwtProperties.accessToken().secret()));
+        this.refreshKey = Keys.hmacShaKeyFor(decodeSecret(jwtProperties.refreshToken().secret()));
         this.accessExpirationMs = jwtProperties.accessToken().expirationMs();
         this.refreshExpirationMs = jwtProperties.refreshToken().expirationMs();
         this.issuer = jwtProperties.issuer();
+    }
+
+    private static byte[] decodeSecret(String secret) {
+        if (secret == null || secret.isBlank()) {
+            throw new IllegalArgumentException("JWT secret must not be empty");
+        }
+        try {
+            return Decoders.BASE64.decode(secret);
+        } catch (Exception e1) {
+            try {
+                return Decoders.BASE64URL.decode(secret);
+            } catch (Exception e2) {
+                return secret.getBytes(java.nio.charset.StandardCharsets.UTF_8);
+            }
+        }
     }
 
     public String generateAccessToken(UUID userId, String username, List<String> roles, List<String> permissions) {
