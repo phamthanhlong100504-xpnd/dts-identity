@@ -26,7 +26,7 @@ services:
       - APP_MAIL_ENABLED=${APP_MAIL_ENABLED:-true}
       - APP_MAIL_FROM=${APP_MAIL_FROM:-noreply@dts.com}
       - APP_MAIL_SENDER_NAME=${APP_MAIL_SENDER_NAME:-DTS Identity}
-    mem_limit: 300m
+    mem_limit: 400m
     networks:
       - dts-network
 
