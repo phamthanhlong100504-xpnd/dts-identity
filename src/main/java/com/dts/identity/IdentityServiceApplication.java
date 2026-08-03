@@ -8,7 +8,12 @@ import org.springframework.kafka.annotation.EnableKafka;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
+import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
+import org.springframework.cloud.openfeign.EnableFeignClients;
+
 @SpringBootApplication
+@EnableDiscoveryClient
+@EnableFeignClients
 @EnableCaching
 @EnableAsync
 @EnableKafka

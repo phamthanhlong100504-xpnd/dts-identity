@@ -8,6 +8,7 @@ services:
     environment:
       - SPRING_PROFILES_ACTIVE=prod
       - JAVA_TOOL_OPTIONS=-Xms128m -Xmx256m -XX:+UseSerialGC -XX:MaxMetaspaceSize=128m -Xss512k
+      - EUREKA_URI=http://eureka-server:8761/eureka/
       - DB_HOST=postgres
       - DB_PORT=5432
       - DB_NAME=dts_identity
