@@ -2,7 +2,7 @@ services:
   identity-service:
     build:
       context: .
-      dockerfile: docker/Dockerfile
+      dockerfile: Dockerfile
     container_name: dts-identity-service
     ports:
       - "${SERVER_PORT:-8081}:8081"
