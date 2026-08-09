@@ -1,0 +1,170 @@
+{
+  "id": "dts-identity-env-local",
+  "name": "DTS Identity - Local",
+  "values": [
+    {
+      "key": "baseUrl",
+      "value": "http://127.0.0.1:8081",
+      "type": "default",
+      "enabled": true,
+      "description": "Base URL cua DTS Identity Service"
+    },
+    {
+      "key": "adminUsername",
+      "value": "admin",
+      "type": "default",
+      "enabled": true,
+      "description": "Username cua admin de dang nhap"
+    },
+    {
+      "key": "adminPassword",
+      "value": "Admin@12345",
+      "type": "secret",
+      "enabled": true,
+      "description": "Password cua admin - thay doi neu can"
+    },
+    {
+      "key": "testUsername",
+      "value": "testuser",
+      "type": "default",
+      "enabled": true,
+      "description": "Username cua user thuong de test"
+    },
+    {
+      "key": "testPassword",
+      "value": "Test@12345",
+      "type": "secret",
+      "enabled": true,
+      "description": "Password cua user thuong"
+    },
+    {
+      "key": "testEmail",
+      "value": "test@example.com",
+      "type": "default",
+      "enabled": true,
+      "description": "Email de test forgot/reset password"
+    },
+    {
+      "key": "otpCode",
+      "value": "",
+      "type": "default",
+      "enabled": true,
+      "description": "OTP code - chi can nhap khi test verify/reset-password"
+    },
+    {
+      "key": "accessToken",
+      "value": "",
+      "type": "secret",
+      "enabled": true,
+      "description": "[TU DONG] Admin access token - duoc set tu dong sau khi Login Admin"
+    },
+    {
+      "key": "refreshToken",
+      "value": "",
+      "type": "secret",
+      "enabled": true,
+      "description": "[TU DONG] Admin refresh token"
+    },
+    {
+      "key": "userAccessToken",
+      "value": "",
+      "type": "secret",
+      "enabled": true,
+      "description": "[TU DONG] User access token"
+    },
+    {
+      "key": "userRefreshToken",
+      "value": "",
+      "type": "secret",
+      "enabled": true,
+      "description": "[TU DONG] User refresh token"
+    },
+    {
+      "key": "adminUserId",
+      "value": "",
+      "type": "default",
+      "enabled": true,
+      "description": "[TU DONG] ID cua admin sau khi dang nhap"
+    },
+    {
+      "key": "createdUserId",
+      "value": "",
+      "type": "default",
+      "enabled": true,
+      "description": "[TU DONG] ID cua user vua duoc tao"
+    },
+    {
+      "key": "createdRoleId",
+      "value": "",
+      "type": "default",
+      "enabled": true,
+      "description": "[TU DONG] ID cua role vua duoc tao"
+    },
+    {
+      "key": "createdPermissionId",
+      "value": "",
+      "type": "default",
+      "enabled": true,
+      "description": "[TU DONG] ID cua permission vua duoc tao"
+    },
+    {
+      "key": "firstUserId",
+      "value": "",
+      "type": "default",
+      "enabled": true,
+      "description": "[TU DONG] ID cua user dau tien trong danh sach"
+    },
+    {
+      "key": "firstRoleId",
+      "value": "",
+      "type": "default",
+      "enabled": true,
+      "description": "[TU DONG] ID cua role dau tien trong danh sach"
+    },
+    {
+      "key": "firstPermissionId",
+      "value": "",
+      "type": "default",
+      "enabled": true,
+      "description": "[TU DONG] ID cua permission dau tien trong danh sach"
+    },
+    {
+      "key": "myUserId",
+      "value": "",
+      "type": "default",
+      "enabled": true,
+      "description": "[TU DONG] ID cua user dang dang nhap"
+    },
+    {
+      "key": "registeredUserId",
+      "value": "",
+      "type": "default",
+      "enabled": true,
+      "description": "[TU DONG] ID cua user vua dang ky"
+    },
+    {
+      "key": "newUsername",
+      "value": "",
+      "type": "default",
+      "enabled": true,
+      "description": "[TU DONG] Username ngau nhien cho Register"
+    },
+    {
+      "key": "newEmail",
+      "value": "",
+      "type": "default",
+      "enabled": true,
+      "description": "[TU DONG] Email ngau nhien cho Register"
+    },
+    {
+      "key": "newPhone",
+      "value": "",
+      "type": "default",
+      "enabled": true,
+      "description": "[TU DONG] So dien thoai ngau nhien"
+    }
+  ],
+  "_postman_variable_scope": "environment",
+  "_postman_exported_at": "2026-07-31T00:00:00.000Z",
+  "_postman_exported_using": "Postman/auto-generated"
+}

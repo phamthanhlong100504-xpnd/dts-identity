@@ -1,0 +1,170 @@
+{
+  "id": "dts-identity-env-vps",
+  "name": "DTS Identity - VPS (103.75.182.249)",
+  "values": [
+    {
+      "key": "baseUrl",
+      "value": "http://103.75.182.249:8081",
+      "type": "default",
+      "enabled": true,
+      "description": "VPS Identity Service URL"
+    },
+    {
+      "key": "adminUsername",
+      "value": "testuser2",
+      "type": "default",
+      "enabled": true,
+      "description": "Username admin tren VPS"
+    },
+    {
+      "key": "adminPassword",
+      "value": "Test@1234",
+      "type": "secret",
+      "enabled": true,
+      "description": "Password admin tren VPS"
+    },
+    {
+      "key": "testUsername",
+      "value": "student01",
+      "type": "default",
+      "enabled": true,
+      "description": "Username user thuong de test"
+    },
+    {
+      "key": "testPassword",
+      "value": "Test@1234",
+      "type": "secret",
+      "enabled": true,
+      "description": "Password user thuong - chinh lai neu sai"
+    },
+    {
+      "key": "testEmail",
+      "value": "shiyi4154@gmail.com",
+      "type": "default",
+      "enabled": true,
+      "description": "Email SMTP duoc cau hinh trong he thong (dung de test forgot-password)"
+    },
+    {
+      "key": "otpCode",
+      "value": "",
+      "type": "default",
+      "enabled": true,
+      "description": "OTP code - chi nhap khi test verify/reset-password (kiem tra email)"
+    },
+    {
+      "key": "accessToken",
+      "value": "",
+      "type": "secret",
+      "enabled": true,
+      "description": "[TU DONG] Admin access token - duoc set tu dong sau khi Login Admin"
+    },
+    {
+      "key": "refreshToken",
+      "value": "",
+      "type": "secret",
+      "enabled": true,
+      "description": "[TU DONG] Admin refresh token"
+    },
+    {
+      "key": "userAccessToken",
+      "value": "",
+      "type": "secret",
+      "enabled": true,
+      "description": "[TU DONG] User access token"
+    },
+    {
+      "key": "userRefreshToken",
+      "value": "",
+      "type": "secret",
+      "enabled": true,
+      "description": "[TU DONG] User refresh token"
+    },
+    {
+      "key": "adminUserId",
+      "value": "36869a37-1eae-4635-9951-f09acc4ddb06",
+      "type": "default",
+      "enabled": true,
+      "description": "[TU DONG] ID cua admin (testuser2) - pre-filled tu VPS"
+    },
+    {
+      "key": "createdUserId",
+      "value": "",
+      "type": "default",
+      "enabled": true,
+      "description": "[TU DONG] ID cua user vua duoc tao"
+    },
+    {
+      "key": "createdRoleId",
+      "value": "",
+      "type": "default",
+      "enabled": true,
+      "description": "[TU DONG] ID cua role vua duoc tao"
+    },
+    {
+      "key": "createdPermissionId",
+      "value": "",
+      "type": "default",
+      "enabled": true,
+      "description": "[TU DONG] ID cua permission vua duoc tao"
+    },
+    {
+      "key": "firstUserId",
+      "value": "",
+      "type": "default",
+      "enabled": true,
+      "description": "[TU DONG] ID cua user dau tien trong danh sach"
+    },
+    {
+      "key": "firstRoleId",
+      "value": "",
+      "type": "default",
+      "enabled": true,
+      "description": "[TU DONG] ID cua role dau tien trong danh sach"
+    },
+    {
+      "key": "firstPermissionId",
+      "value": "",
+      "type": "default",
+      "enabled": true,
+      "description": "[TU DONG] ID cua permission dau tien trong danh sach"
+    },
+    {
+      "key": "myUserId",
+      "value": "",
+      "type": "default",
+      "enabled": true,
+      "description": "[TU DONG] ID cua user dang dang nhap"
+    },
+    {
+      "key": "registeredUserId",
+      "value": "",
+      "type": "default",
+      "enabled": true,
+      "description": "[TU DONG] ID cua user vua dang ky"
+    },
+    {
+      "key": "newUsername",
+      "value": "",
+      "type": "default",
+      "enabled": true,
+      "description": "[TU DONG] Username ngau nhien cho Register"
+    },
+    {
+      "key": "newEmail",
+      "value": "",
+      "type": "default",
+      "enabled": true,
+      "description": "[TU DONG] Email ngau nhien cho Register"
+    },
+    {
+      "key": "newPhone",
+      "value": "",
+      "type": "default",
+      "enabled": true,
+      "description": "[TU DONG] So dien thoai ngau nhien"
+    }
+  ],
+  "_postman_variable_scope": "environment",
+  "_postman_exported_at": "2026-07-31T04:00:00.000Z",
+  "_postman_exported_using": "Postman/auto-generated"
+}
