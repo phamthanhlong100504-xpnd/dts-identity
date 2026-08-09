@@ -131,6 +131,15 @@ public class AdminController {
         return ResponseEntity.ok(ApiResponse.ok(userService.updateUserStatus(id, request)));
     }
 
+    @PatchMapping("/users/{id}/password")
+    @Operation(summary = "Reset a user's password (admin)")
+    public ResponseEntity<ApiResponse<Void>> resetPassword(
+            @PathVariable UUID id,
+            @Valid @RequestBody AdminResetPasswordRequest request) {
+        userService.resetPassword(id, request);
+        return ResponseEntity.ok(ApiResponse.ok("Password reset", null));
+    }
+
     // ==================== USER ROLES ====================
 
     @GetMapping("/users/{id}/roles")

@@ -95,6 +95,25 @@ public class UserService {
 
     @Transactional
     @CacheEvict(value = "users", key = "#id")
+    public void resetPassword(UUID id, AdminResetPasswordRequest request) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new BusinessException("User not found", HttpStatus.NOT_FOUND));
+
+        user.setPassword(passwordEncoder.encode(request.password()));
+
+        // Unlock account so the new password works immediately
+        user.setFailedLoginAttempts(0);
+        user.setLockedUntil(null);
+
+        // Revoke all existing tokens on password reset (security best practice)
+        refreshTokenRepository.revokeAllByUserId(id, Instant.now());
+        userRepository.save(user);
+
+        log.info("Admin reset password for user: id={}", id);
+    }
+
+    @Transactional
+    @CacheEvict(value = "users", key = "#id")
     public void deleteUser(UUID id) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new BusinessException("User not found", HttpStatus.NOT_FOUND));
