@@ -8,9 +8,9 @@ Bộ test tự động cho DTS Identity Service. Tester **không cần nhập to
 
 | Service | URL | Status |
 |---------|-----|--------|
-| **Identity Service** | `http://103.75.182.249:8081` | ✅ Online |
-| **Practice Service** | `http://103.75.182.249:8083` | ✅ Online |
-| **Swagger UI (Practice)** | `http://103.75.182.249:8083/swagger-ui/index.html` | ✅ Online |
+| **Identity Service** | `http://{{VPS_HOST}}:8081` | ✅ Online |
+| **Practice Service** | `http://{{VPS_HOST}}:8083` | ✅ Online |
+| **Swagger UI (Practice)** | `http://{{VPS_HOST}}:8083/swagger-ui/index.html` | ✅ Online |
 
 ### Credentials đã xác nhận trên VPS
 

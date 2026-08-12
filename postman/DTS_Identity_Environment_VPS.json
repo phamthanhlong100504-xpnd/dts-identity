@@ -1,10 +1,10 @@
 {
   "id": "dts-identity-env-vps",
-  "name": "DTS Identity - VPS (103.75.182.249)",
+  "name": "DTS Identity - VPS",
   "values": [
     {
       "key": "baseUrl",
-      "value": "http://103.75.182.249:8081",
+      "value": "http://{{VPS_HOST}}:8081",
       "type": "default",
       "enabled": true,
       "description": "VPS Identity Service URL"
