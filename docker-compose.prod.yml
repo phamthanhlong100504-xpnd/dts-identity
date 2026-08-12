@@ -30,15 +30,6 @@ services:
     networks:
       - dts-network
 
-  redis:
-    image: redis:7-alpine
-    container_name: redis
-    restart: unless-stopped
-    ports:
-      - "6379:6379"
-    networks:
-      - dts-network
-
 networks:
   dts-network:
     external: true
