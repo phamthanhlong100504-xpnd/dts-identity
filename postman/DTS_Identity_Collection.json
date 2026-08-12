@@ -31,7 +31,7 @@
           "if (!token || token === '' || token === 'undefined') {",
           "    if (isLoginRequest) return; // tranh loop khi dang login",
           "    console.log('[AUTO-LOGIN] Token chua co, dang tu dong login...');",
-          "    var baseUrl = pm.environment.get('baseUrl') || 'http://103.75.182.249:8081';",
+          "    var baseUrl = pm.environment.get('baseUrl') || 'http://localhost:8081';",
           "    var username = pm.environment.get('adminUsername') || 'testuser2';",
           "    var password = pm.environment.get('adminPassword') || 'Test@1234';",
           "",
