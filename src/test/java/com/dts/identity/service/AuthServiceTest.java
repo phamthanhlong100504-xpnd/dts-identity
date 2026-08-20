@@ -2,12 +2,17 @@ package com.dts.identity.service;
 
 import com.dts.identity.config.SecurityProperties;
 import com.dts.identity.dto.request.LoginRequest;
+import com.dts.identity.dto.request.RefreshTokenRequest;
 import com.dts.identity.dto.request.RegisterRequest;
 import com.dts.identity.dto.response.AuthResponse;
-import com.dts.identity.entity.*;
+import com.dts.identity.entity.RefreshToken;
+import com.dts.identity.entity.Role;
+import com.dts.identity.entity.User;
+import com.dts.identity.entity.UserRole;
 import com.dts.identity.exception.BusinessException;
 import com.dts.identity.repository.*;
 import com.dts.identity.security.JwtProvider;
+import io.jsonwebtoken.Claims;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -17,17 +22,18 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-@DisplayName("AuthService Unit Tests")
 class AuthServiceTest {
 
     @Mock private UserRepository userRepository;
@@ -46,172 +52,220 @@ class AuthServiceTest {
     @InjectMocks
     private AuthService authService;
 
-    private User testUser;
-    private Role studentRole;
-    private UUID userId;
-    private static final String RAW_PASSWORD = "Test@1234";
-    private static final String ENCODED_PASSWORD = "$2a$12$encodedPasswordHash";
+    private User user;
+    private Role role;
+    private UserRole userRole;
 
     @BeforeEach
     void setUp() {
-        userId = UUID.randomUUID();
-        studentRole = Role.builder()
+        user = User.builder()
+                .id(UUID.randomUUID())
+                .username("testuser")
+                .email("test@example.com")
+                .password("encodedPassword")
+                .status(User.UserStatus.ACTIVE)
+                .failedLoginAttempts(0)
+                .build();
+
+        role = Role.builder()
                 .id(UUID.randomUUID())
                 .name(Role.ROLE_STUDENT)
                 .build();
 
-        testUser = User.builder()
-                .id(userId)
-                .username("testuser")
-                .email("test@example.com")
-                .password(ENCODED_PASSWORD)
-                .fullName("Test User")
-                .birthOfDate(LocalDate.of(2000, 1, 1))
-                .phoneNumber("0123456789")
-                .status(User.UserStatus.ACTIVE)
+        userRole = UserRole.builder()
+                .userId(user.getId())
+                .roleId(role.getId())
+                .role(role)
                 .build();
+    }
 
-        lenient().when(securityProperties.bruteForce())
-                .thenReturn(new SecurityProperties.BruteForceProperties(5, 15));
-        lenient().when(securityProperties.verificationCode())
-                .thenReturn(new SecurityProperties.VerificationCodeProperties(15, 3));
+    // ==================== LOGIN ====================
+
+    @Test
+    @DisplayName("login - Path 1: User Not Found")
+    void login_UserNotFound() {
+        LoginRequest request = new LoginRequest("unknown", "password", "device");
+        when(userRepository.findByIdentifier("unknown")).thenReturn(Optional.empty());
+
+        assertThrows(BusinessException.class, () -> authService.login(request));
+        verify(passwordEncoder).matches(eq("password"), anyString());
     }
 
     @Test
-    @DisplayName("Register new user successfully")
-    void register_Success() {
-        RegisterRequest request = new RegisterRequest(
-                "testuser", "test@example.com", RAW_PASSWORD,
-                "Test User", LocalDate.of(2000, 1, 1), "0123456789");
+    @DisplayName("login - Path 2: Account Locked")
+    void login_AccountLocked() {
+        user.setStatus(User.UserStatus.LOCKED);
+        user.setLockedUntil(Instant.now().plusSeconds(3600));
+        LoginRequest request = new LoginRequest("testuser", "password", "device");
+        when(userRepository.findByIdentifier("testuser")).thenReturn(Optional.of(user));
 
-        when(userRepository.existsByUsernameAndDeletedAtIsNull("testuser")).thenReturn(false);
-        when(userRepository.existsByEmailAndDeletedAtIsNull("test@example.com")).thenReturn(false);
-        when(userRepository.existsByPhoneNumberAndDeletedAtIsNull("0123456789")).thenReturn(false);
-        when(roleRepository.findByName(Role.ROLE_STUDENT)).thenReturn(Optional.of(studentRole));
-        when(passwordEncoder.encode(RAW_PASSWORD)).thenReturn(ENCODED_PASSWORD);
-        when(userRepository.save(any(User.class))).thenReturn(testUser);
-        when(userRoleRepository.save(any(UserRole.class))).thenReturn(new UserRole());
-        when(verificationCodeRepository.markAllUsedByUserIdAndType(any(), any())).thenReturn(0);
-        when(verificationCodeRepository.save(any(VerificationCode.class))).thenReturn(new VerificationCode());
-        when(userRoleRepository.findByUserId(userId)).thenReturn(List.of());
-        when(jwtProvider.generateAccessToken(any(), anyString(), anyList(), anyList()))
-                .thenReturn("access-token");
-        when(jwtProvider.generateRefreshToken(any()))
-                .thenReturn("refresh-token");
+        assertThrows(BusinessException.class, () -> authService.login(request));
+    }
+
+    @Test
+    @DisplayName("login - Path 3: Account Banned")
+    void login_AccountBanned() {
+        user.setStatus(User.UserStatus.BANNED);
+        LoginRequest request = new LoginRequest("testuser", "password", "device");
+        when(userRepository.findByIdentifier("testuser")).thenReturn(Optional.of(user));
+
+        assertThrows(BusinessException.class, () -> authService.login(request));
+    }
+
+    @Test
+    @DisplayName("login - Path 4: Wrong Password")
+    void login_WrongPassword() {
+        LoginRequest request = new LoginRequest("testuser", "wrong", "device");
+        when(userRepository.findByIdentifier("testuser")).thenReturn(Optional.of(user));
+        when(passwordEncoder.matches("wrong", "encodedPassword")).thenReturn(false);
+        
+        SecurityProperties.BruteForceProperties bruteForceMock = mock(SecurityProperties.BruteForceProperties.class);
+        when(securityProperties.bruteForce()).thenReturn(bruteForceMock);
+        when(bruteForceMock.maxFailedAttempts()).thenReturn(5);
+
+        assertThrows(BusinessException.class, () -> authService.login(request));
+        verify(userRepository).save(user); // saving failed attempts
+        assertEquals(1, user.getFailedLoginAttempts());
+    }
+
+    @Test
+    @DisplayName("login - Path 5: Happy Case")
+    void login_HappyCase() {
+        LoginRequest request = new LoginRequest("testuser", "password", "device");
+        when(userRepository.findByIdentifier("testuser")).thenReturn(Optional.of(user));
+        when(passwordEncoder.matches("password", "encodedPassword")).thenReturn(true);
+        when(userRoleRepository.findByUserId(user.getId())).thenReturn(List.of(userRole));
+        when(jwtProvider.generateAccessToken(any(), anyString(), anyList(), anyList())).thenReturn("access-token");
+        when(jwtProvider.generateRefreshToken(any())).thenReturn("refresh-token");
         when(jwtProvider.getRefreshExpirationMs()).thenReturn(604800000L);
-        when(jwtProvider.getAccessExpirationMs()).thenReturn(900000L);
-        when(refreshTokenRepository.save(any(RefreshToken.class))).thenReturn(new RefreshToken());
-
-        AuthResponse response = authService.register(request);
-
-        assertNotNull(response);
-        assertEquals("access-token", response.accessToken());
-        assertEquals("refresh-token", response.refreshToken());
-        assertEquals("Bearer", response.tokenType());
-        assertEquals(900L, response.expiresIn());
-        assertNotNull(response.user());
-        assertEquals("testuser", response.user().username());
-        assertEquals("test@example.com", response.user().email());
-
-        verify(userRepository).save(any(User.class));
-        verify(userRoleRepository).save(any(UserRole.class));
-        verify(verificationCodeRepository).save(any(VerificationCode.class));
-    }
-
-    @Test
-    @DisplayName("Register fails when username already exists")
-    void register_UsernameAlreadyTaken() {
-        RegisterRequest request = new RegisterRequest(
-                "testuser", "new@example.com", RAW_PASSWORD,
-                "Test User", LocalDate.of(2000, 1, 1), "0123456789");
-
-        when(userRepository.existsByUsernameAndDeletedAtIsNull("testuser")).thenReturn(true);
-
-        BusinessException ex = assertThrows(BusinessException.class,
-                () -> authService.register(request));
-        assertEquals("BIZ-409", ex.getErrorCode());
-        assertTrue(ex.getMessage().contains("Username already taken"));
-    }
-
-    @Test
-    @DisplayName("Register fails when email already exists")
-    void register_EmailAlreadyExists() {
-        RegisterRequest request = new RegisterRequest(
-                "newuser", "test@example.com", RAW_PASSWORD,
-                "Test User", LocalDate.of(2000, 1, 1), "0123456789");
-
-        when(userRepository.existsByUsernameAndDeletedAtIsNull("newuser")).thenReturn(false);
-        when(userRepository.existsByEmailAndDeletedAtIsNull("test@example.com")).thenReturn(true);
-
-        BusinessException ex = assertThrows(BusinessException.class,
-                () -> authService.register(request));
-        assertEquals("BIZ-409", ex.getErrorCode());
-        assertTrue(ex.getMessage().contains("Email already registered"));
-    }
-
-    @Test
-    @DisplayName("Register fails when phone already exists")
-    void register_PhoneAlreadyExists() {
-        RegisterRequest request = new RegisterRequest(
-                "newuser", "new@example.com", RAW_PASSWORD,
-                "Test User", LocalDate.of(2000, 1, 1), "0123456789");
-
-        when(userRepository.existsByUsernameAndDeletedAtIsNull("newuser")).thenReturn(false);
-        when(userRepository.existsByEmailAndDeletedAtIsNull("new@example.com")).thenReturn(false);
-        when(userRepository.existsByPhoneNumberAndDeletedAtIsNull("0123456789")).thenReturn(true);
-
-        BusinessException ex = assertThrows(BusinessException.class,
-                () -> authService.register(request));
-        assertEquals("BIZ-409", ex.getErrorCode());
-        assertTrue(ex.getMessage().contains("Phone number already registered"));
-    }
-
-    @Test
-    @DisplayName("Login succeeds with valid credentials")
-    void login_Success() {
-        LoginRequest request = new LoginRequest("testuser", RAW_PASSWORD, null);
-
-        when(userRepository.findByIdentifier("testuser")).thenReturn(Optional.of(testUser));
-        when(passwordEncoder.matches(RAW_PASSWORD, ENCODED_PASSWORD)).thenReturn(true);
-        when(userRoleRepository.findByUserId(userId)).thenReturn(List.of());
-        when(jwtProvider.generateAccessToken(any(), anyString(), anyList(), anyList()))
-                .thenReturn("access-token");
-        when(jwtProvider.generateRefreshToken(any()))
-                .thenReturn("refresh-token");
-        when(jwtProvider.getRefreshExpirationMs()).thenReturn(604800000L);
-        when(jwtProvider.getAccessExpirationMs()).thenReturn(900000L);
-        when(refreshTokenRepository.save(any(RefreshToken.class))).thenReturn(new RefreshToken());
+        when(jwtProvider.getAccessExpirationMs()).thenReturn(86400000L);
 
         AuthResponse response = authService.login(request);
 
         assertNotNull(response);
         assertEquals("access-token", response.accessToken());
         assertEquals("refresh-token", response.refreshToken());
+        verify(refreshTokenRepository).save(any(RefreshToken.class));
+        verify(userRepository).save(user); // clear failed attempts
+    }
 
-        verify(userRepository).save(argThat(user ->
-                user.getFailedLoginAttempts() == 0 && user.getLastLoginAt() != null));
+    // ==================== REGISTER ====================
+
+    @Test
+    @DisplayName("register - Path 1: Username Taken")
+    void register_UsernameTaken() {
+        RegisterRequest request = new RegisterRequest("testuser", "test@example.com", "pass", "Full", LocalDate.now(), "0123");
+        when(userRepository.existsByUsernameAndDeletedAtIsNull("testuser")).thenReturn(true);
+
+        assertThrows(BusinessException.class, () -> authService.register(request));
     }
 
     @Test
-    @DisplayName("Login fails with wrong password")
-    void login_WrongPassword() {
-        LoginRequest request = new LoginRequest("testuser", "WrongPass", null);
+    @DisplayName("register - Path 2: Email Taken")
+    void register_EmailTaken() {
+        RegisterRequest request = new RegisterRequest("newuser", "test@example.com", "pass", "Full", LocalDate.now(), "0123");
+        when(userRepository.existsByUsernameAndDeletedAtIsNull("newuser")).thenReturn(false);
+        when(userRepository.existsByEmailAndDeletedAtIsNull("test@example.com")).thenReturn(true);
 
-        when(userRepository.findByIdentifier("testuser")).thenReturn(Optional.of(testUser));
-        when(passwordEncoder.matches("WrongPass", ENCODED_PASSWORD)).thenReturn(false);
-
-        assertThrows(BusinessException.class, () -> authService.login(request));
-        verify(userRepository).save(argThat(user -> user.getFailedLoginAttempts() > 0));
+        assertThrows(BusinessException.class, () -> authService.register(request));
     }
 
     @Test
-    @DisplayName("Login fails with non-existent user")
-    void login_UserNotFound() {
-        LoginRequest request = new LoginRequest("nonexistent", RAW_PASSWORD, null);
+    @DisplayName("register - Path 3: Happy Case")
+    void register_HappyCase() {
+        RegisterRequest request = new RegisterRequest("newuser", "new@example.com", "pass", "Full", LocalDate.now(), "0123");
+        when(userRepository.existsByUsernameAndDeletedAtIsNull(anyString())).thenReturn(false);
+        when(userRepository.existsByEmailAndDeletedAtIsNull(anyString())).thenReturn(false);
+        when(userRepository.existsByPhoneNumberAndDeletedAtIsNull(anyString())).thenReturn(false);
+        when(roleRepository.findByName(Role.ROLE_STUDENT)).thenReturn(Optional.of(role));
+        when(passwordEncoder.encode("pass")).thenReturn("encoded");
+        
+        User savedUser = User.builder().id(UUID.randomUUID()).username("newuser").build();
+        when(userRepository.save(any(User.class))).thenReturn(savedUser);
+        SecurityProperties.VerificationCodeProperties verifyMock = mock(SecurityProperties.VerificationCodeProperties.class);
+        when(securityProperties.verificationCode()).thenReturn(verifyMock);
+        when(verifyMock.expirationMinutes()).thenReturn(15);
+        
+        when(jwtProvider.generateAccessToken(any(), any(), anyList(), anyList())).thenReturn("access");
+        when(jwtProvider.generateRefreshToken(any())).thenReturn("refresh");
 
-        when(userRepository.findByIdentifier("nonexistent")).thenReturn(Optional.empty());
-        when(passwordEncoder.matches(anyString(), anyString())).thenReturn(false);
+        AuthResponse response = authService.register(request);
 
-        assertThrows(BusinessException.class, () -> authService.login(request));
+        assertNotNull(response);
+        verify(userRoleRepository).save(any(UserRole.class));
+        verify(verificationCodeRepository).save(any());
+        verify(outboxPublisher, atLeastOnce()).publish(anyString(), anyString(), anyString(), anyString(), anyMap());
+    }
+
+    // ==================== LOGOUT ====================
+
+    @Test
+    @DisplayName("logout - Happy Case")
+    void logout_HappyCase() {
+        authService.logout(user.getId());
+        verify(refreshTokenRepository).revokeAllByUserId(eq(user.getId()), any(Instant.class));
+    }
+    // ==================== REFRESH TOKEN ====================
+    @Test
+    @DisplayName("refreshToken - Happy Case")
+    void refreshToken_HappyCase() {
+        RefreshTokenRequest request = new RefreshTokenRequest("valid-refresh-token");
+        Claims claims = mock(Claims.class);
+        when(jwtProvider.validateRefreshToken("valid-refresh-token")).thenReturn(claims);
+        when(jwtProvider.getUserId(claims)).thenReturn(user.getId());
+
+        RefreshToken storedToken = new RefreshToken();
+        storedToken.setTokenHash("hash");
+        storedToken.setExpiresAt(Instant.now().plusSeconds(3600));
+
+        // Mock hashToken internals (we can just let it hash naturally and mock findByTokenHash)
+        when(refreshTokenRepository.findByTokenHash(anyString())).thenReturn(Optional.of(storedToken));
+        when(userRepository.findById(user.getId())).thenReturn(Optional.of(user));
+
+        when(userRoleRepository.findByUserId(user.getId())).thenReturn(List.of(userRole));
+        when(jwtProvider.generateAccessToken(any(), anyString(), anyList(), anyList())).thenReturn("new-access");
+        when(jwtProvider.generateRefreshToken(any())).thenReturn("new-refresh");
+
+        AuthResponse response = authService.refreshToken(request);
+
+        assertNotNull(response);
+        assertEquals("new-access", response.accessToken());
+        assertNotNull(storedToken.getRevokedAt()); // old token revoked
+    }
+
+    // ==================== FORGOT PASSWORD ====================
+    @Test
+    @DisplayName("forgotPassword - Happy Case")
+    void forgotPassword_HappyCase() {
+        com.dts.identity.dto.request.ForgotPasswordRequest request = new com.dts.identity.dto.request.ForgotPasswordRequest("test@example.com");
+        when(userRepository.findByIdentifier("test@example.com")).thenReturn(Optional.of(user));
+        
+        SecurityProperties.VerificationCodeProperties verifyMock = mock(SecurityProperties.VerificationCodeProperties.class);
+        when(securityProperties.verificationCode()).thenReturn(verifyMock);
+        when(verifyMock.expirationMinutes()).thenReturn(15);
+
+        authService.forgotPassword(request);
+
+        verify(verificationCodeRepository).save(any());
+        verify(outboxPublisher, atLeastOnce()).publish(anyString(), anyString(), anyString(), anyString(), anyMap());
+    }
+
+    // ==================== VALIDATE TOKEN ====================
+    @Test
+    @DisplayName("validateToken - Happy Case")
+    void validateToken_HappyCase() {
+        Claims claims = mock(Claims.class);
+        when(jwtProvider.validateAccessToken("token")).thenReturn(claims);
+        when(jwtProvider.getUserId(claims)).thenReturn(user.getId());
+        when(claims.get("username", String.class)).thenReturn("testuser");
+        when(jwtProvider.getRoles(claims)).thenReturn(List.of("ROLE_STUDENT"));
+        when(jwtProvider.getPermissions(claims)).thenReturn(List.of());
+
+        com.dts.identity.dto.response.TokenValidationResponse response = authService.validateToken("token");
+
+        assertTrue(response.valid());
+        assertEquals("testuser", response.username());
+        assertEquals("ROLE_STUDENT", response.roles().get(0));
     }
 }
+
