@@ -1,0 +1,47 @@
+spring:
+  datasource:
+    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: sa
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    hibernate:
+      ddl-auto: update
+  flyway:
+    enabled: false
+  kafka:
+    bootstrap-servers: localhost:9092
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+  mail:
+    host: localhost
+    port: 2525
+    username: test
+    password: test
+    properties:
+      mail:
+        smtp:
+          auth: false
+          starttls:
+            enable: false
+
+eureka:
+  client:
+    enabled: false
+
+jwt:
+  secret: YmFzZTY0c2VjcmV0a2V5YmFzZTY0c2VjcmV0a2V5YmFzZTY0c2VjcmV0a2V5YmFzZTY0c2VjcmV0a2V5Cg==
+  expiration: 86400000
+  refresh-expiration: 604800000
+
+security:
+  jwt:
+    secret: YmFzZTY0c2VjcmV0a2V5YmFzZTY0c2VjcmV0a2V5YmFzZTY0c2VjcmV0a2V5YmFzZTY0c2VjcmV0a2V5Cg==
+  password:
+    pepper: pepper-string
+
+kafka:
+  topics:
+    user-events: test-topic
