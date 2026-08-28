@@ -23,7 +23,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -39,6 +41,7 @@ public class UserService {
     private final RolePermissionRepository rolePermissionRepository;
     private final RefreshTokenRepository refreshTokenRepository;
     private final PasswordEncoder passwordEncoder;
+    private final OutboxPublisher outboxPublisher;
 
     // ==================== USER CRUD ====================
 
@@ -90,6 +93,15 @@ public class UserService {
 
         User saved = userRepository.save(user);
         log.info("User updated: id={}", id);
+
+        Map<String, Object> eventPayload = new HashMap<>();
+        eventPayload.put("userId", id.toString());
+        eventPayload.put("username", user.getUsername());
+        eventPayload.put("email", user.getEmail());
+        eventPayload.put("fullName", user.getFullName());
+        outboxPublisher.publish("user-events", "USER_UPDATED",
+                id.toString(), "USER", eventPayload);
+
         return UserResponse.from(saved);
     }
 
@@ -123,6 +135,12 @@ public class UserService {
         refreshTokenRepository.revokeAllByUserId(id, Instant.now());
         userRepository.save(user);
         log.info("User soft-deleted: id={}", id);
+
+        Map<String, Object> eventPayload = new HashMap<>();
+        eventPayload.put("userId", id.toString());
+        eventPayload.put("username", user.getUsername());
+        outboxPublisher.publish("user-events", "USER_DELETED",
+                id.toString(), "USER", eventPayload);
     }
 
     // ==================== ROLE MANAGEMENT ====================
@@ -245,6 +263,15 @@ public class UserService {
         }
 
         log.info("Admin created user: id={}, username={}", user.getId(), user.getUsername());
+
+        Map<String, Object> eventPayload = new HashMap<>();
+        eventPayload.put("userId", user.getId().toString());
+        eventPayload.put("username", user.getUsername());
+        eventPayload.put("email", user.getEmail());
+        eventPayload.put("fullName", user.getFullName());
+        outboxPublisher.publish("user-events", "USER_CREATED",
+                user.getId().toString(), "USER", eventPayload);
+
         return UserResponse.from(user);
     }
 
