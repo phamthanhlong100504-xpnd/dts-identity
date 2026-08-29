@@ -1,5 +1,6 @@
 package com.dts.identity.service;
 
+import com.dts.identity.config.SecurityProperties;
 import com.dts.identity.dto.request.AssignRoleRequest;
 import com.dts.identity.dto.request.CreatePermissionRequest;
 import com.dts.identity.dto.request.CreateRoleRequest;
@@ -10,11 +11,8 @@ import com.dts.identity.entity.Role;
 import com.dts.identity.entity.User;
 import com.dts.identity.entity.UserRole;
 import com.dts.identity.exception.BusinessException;
-import com.dts.identity.repository.PermissionRepository;
-import com.dts.identity.repository.RolePermissionRepository;
-import com.dts.identity.repository.RoleRepository;
-import com.dts.identity.repository.UserRepository;
-import com.dts.identity.repository.UserRoleRepository;
+import com.dts.identity.repository.*;
+import com.dts.identity.security.JwtProvider;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -23,6 +21,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.List;
 import java.util.Optional;
