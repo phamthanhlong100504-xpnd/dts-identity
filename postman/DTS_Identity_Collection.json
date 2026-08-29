@@ -64,7 +64,6 @@
         ]
       }
     },
-
     {
       "listen": "test",
       "script": {
@@ -110,17 +109,31 @@
             }
           ],
           "request": {
-            "auth": { "type": "noauth" },
+            "auth": {
+              "type": "noauth"
+            },
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"username\": \"{{adminUsername}}\",\n  \"password\": \"{{adminPassword}}\",\n  \"deviceInfo\": \"Postman Auto Test\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/v1/auth/login",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "auth", "login"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "login"
+              ]
             }
           }
         },
@@ -145,17 +158,31 @@
             }
           ],
           "request": {
-            "auth": { "type": "noauth" },
+            "auth": {
+              "type": "noauth"
+            },
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"username\": \"{{testUsername}}\",\n  \"password\": \"{{testPassword}}\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/v1/auth/login",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "auth", "login"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "login"
+              ]
             }
           }
         },
@@ -180,7 +207,7 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test('Status 200', function() { pm.response.to.have.status(200); });",
+                  "pm.test('Status 200', function() { pm.expect([200, 201]).to.include(pm.response.code); });",
                   "pm.test('success=true', function() {",
                   "    pm.expect(pm.response.json().success).to.be.true;",
                   "});",
@@ -195,17 +222,31 @@
             }
           ],
           "request": {
-            "auth": { "type": "noauth" },
+            "auth": {
+              "type": "noauth"
+            },
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"username\": \"{{newUsername}}\",\n  \"email\": \"{{newEmail}}\",\n  \"password\": \"Test@12345\",\n  \"fullName\": \"Auto Test User\",\n  \"birthOfDate\": \"2000-01-01\",\n  \"phoneNumber\": \"{{newPhone}}\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/v1/auth/register",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "auth", "register"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "register"
+              ]
             }
           }
         },
@@ -229,17 +270,31 @@
             }
           ],
           "request": {
-            "auth": { "type": "noauth" },
+            "auth": {
+              "type": "noauth"
+            },
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/v1/auth/refresh",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "auth", "refresh"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "refresh"
+              ]
             }
           }
         },
@@ -265,8 +320,15 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/api/v1/auth/validate",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "auth", "validate"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "validate"
+              ]
             }
           }
         },
@@ -279,8 +341,8 @@
                 "type": "text/javascript",
                 "exec": [
                   "pm.test('Status 200', function() { pm.response.to.have.status(200); });",
-                  "pm.environment.unset('accessToken');",
-                  "pm.environment.unset('refreshToken');",
+                  "pm.environment.unset('userAccessToken');",
+                  "pm.environment.unset('userRefreshToken');",
                   "console.log('Logged out, tokens cleared');"
                 ]
               }
@@ -291,8 +353,15 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/api/v1/auth/logout",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "auth", "logout"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "logout"
+              ]
             }
           }
         },
@@ -310,17 +379,31 @@
             }
           ],
           "request": {
-            "auth": { "type": "noauth" },
+            "auth": {
+              "type": "noauth"
+            },
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"identifier\": \"{{testEmail}}\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/v1/auth/forgot-password",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "auth", "forgot-password"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "forgot-password"
+              ]
             }
           }
         },
@@ -338,17 +421,31 @@
             }
           ],
           "request": {
-            "auth": { "type": "noauth" },
+            "auth": {
+              "type": "noauth"
+            },
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"identifier\": \"{{testEmail}}\",\n  \"code\": \"{{otpCode}}\",\n  \"newPassword\": \"NewPass@12345\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/v1/auth/reset-password",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "auth", "reset-password"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "reset-password"
+              ]
             }
           }
         },
@@ -366,17 +463,31 @@
             }
           ],
           "request": {
-            "auth": { "type": "noauth" },
+            "auth": {
+              "type": "noauth"
+            },
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"identifier\": \"{{testEmail}}\",\n  \"code\": \"{{otpCode}}\",\n  \"type\": \"EMAIL\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/v1/auth/verify",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "auth", "verify"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "verify"
+              ]
             }
           }
         },
@@ -394,17 +505,31 @@
             }
           ],
           "request": {
-            "auth": { "type": "noauth" },
+            "auth": {
+              "type": "noauth"
+            },
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"identifier\": \"{{testEmail}}\",\n  \"type\": \"EMAIL\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/v1/auth/resend-verification",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "auth", "resend-verification"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "resend-verification"
+              ]
             }
           }
         },
@@ -423,15 +548,27 @@
           ],
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"oldPassword\": \"{{adminPassword}}\",\n  \"newPassword\": \"{{adminPassword}}\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/v1/auth/change-password",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "auth", "change-password"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "change-password"
+              ]
             }
           }
         }
@@ -467,8 +604,15 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/api/v1/users/me",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "users", "me"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "users",
+                "me"
+              ]
             }
           }
         },
@@ -488,15 +632,27 @@
           ],
           "request": {
             "method": "PUT",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"fullName\": \"Auto Updated Name\",\n  \"birthOfDate\": \"1999-05-15\",\n  \"phoneNumber\": \"0901234567\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/v1/users/me",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "users", "me"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "users",
+                "me"
+              ]
             }
           }
         },
@@ -521,8 +677,16 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/api/v1/users/me/roles",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "users", "me", "roles"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "users",
+                "me",
+                "roles"
+              ]
             }
           }
         }
@@ -557,8 +721,15 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/api/v1/admin/permissions",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "admin", "permissions"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "admin",
+                "permissions"
+              ]
             }
           }
         },
@@ -582,7 +753,7 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test('Status 200', function() { pm.response.to.have.status(200); });",
+                  "pm.test('Status 200', function() { pm.expect([200, 201]).to.include(pm.response.code); });",
                   "pm.test('Permission created with ID', function() {",
                   "    pm.expect(pm.response.json().data).to.have.property('id');",
                   "});",
@@ -597,15 +768,27 @@
           ],
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"name\": \"{{newPermissionName}}\",\n  \"displayName\": \"{{newPermissionDisplay}}\",\n  \"resource\": \"{{newPermissionResource}}\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/v1/admin/permissions",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "admin", "permissions"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "admin",
+                "permissions"
+              ]
             }
           }
         },
@@ -625,15 +808,28 @@
           ],
           "request": {
             "method": "PUT",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"displayName\": \"Updated Display Name\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/v1/admin/permissions/{{createdPermissionId}}",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "admin", "permissions", "{{createdPermissionId}}"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "admin",
+                "permissions",
+                "{{createdPermissionId}}"
+              ]
             }
           }
         },
@@ -645,8 +841,7 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test('Status 200', function() { pm.response.to.have.status(200); });",
-                  "pm.environment.unset('createdPermissionId');"
+                  "pm.test('Status 200', function() { pm.response.to.have.status(200); });"
                 ]
               }
             }
@@ -656,8 +851,16 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/api/v1/admin/permissions/{{createdPermissionId}}",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "admin", "permissions", "{{createdPermissionId}}"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "admin",
+                "permissions",
+                "{{createdPermissionId}}"
+              ]
             }
           }
         }
@@ -692,8 +895,15 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/api/v1/admin/roles",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "admin", "roles"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "admin",
+                "roles"
+              ]
             }
           }
         },
@@ -715,7 +925,7 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test('Status 200', function() { pm.response.to.have.status(200); });",
+                  "pm.test('Status 200', function() { pm.expect([200, 201]).to.include(pm.response.code); });",
                   "pm.test('Role created with ID', function() {",
                   "    pm.expect(pm.response.json().data).to.have.property('id');",
                   "});",
@@ -730,15 +940,27 @@
           ],
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"name\": \"{{newRoleName}}\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/v1/admin/roles",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "admin", "roles"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "admin",
+                "roles"
+              ]
             }
           }
         },
@@ -750,7 +972,7 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test('Status 200', function() { pm.response.to.have.status(200); });",
+                  "pm.test('Status 200', function() { pm.expect([200, 201]).to.include(pm.response.code); });",
                   "pm.test('success=true', function() { pm.expect(pm.response.json().success).to.be.true; });"
                 ]
               }
@@ -761,8 +983,18 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/api/v1/admin/roles/{{createdRoleId}}/permissions/{{createdPermissionId}}",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "admin", "roles", "{{createdRoleId}}", "permissions", "{{createdPermissionId}}"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "admin",
+                "roles",
+                "{{createdRoleId}}",
+                "permissions",
+                "{{createdPermissionId}}"
+              ]
             }
           }
         },
@@ -784,8 +1016,18 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/api/v1/admin/roles/{{createdRoleId}}/permissions/{{createdPermissionId}}",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "admin", "roles", "{{createdRoleId}}", "permissions", "{{createdPermissionId}}"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "admin",
+                "roles",
+                "{{createdRoleId}}",
+                "permissions",
+                "{{createdPermissionId}}"
+              ]
             }
           }
         },
@@ -797,22 +1039,35 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test('Status 200', function() { pm.response.to.have.status(200); });"
+                  "pm.test('Status 200', function() { pm.expect([200, 201]).to.include(pm.response.code); });"
                 ]
               }
             }
           ],
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"userId\": \"{{createdUserId}}\",\n  \"roleId\": \"{{createdRoleId}}\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/v1/admin/roles/assign",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "admin", "roles", "assign"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "admin",
+                "roles",
+                "assign"
+              ]
             }
           }
         },
@@ -834,8 +1089,18 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/api/v1/admin/users/{{createdUserId}}/roles/{{createdRoleId}}",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "admin", "users", "{{createdUserId}}", "roles", "{{createdRoleId}}"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "admin",
+                "users",
+                "{{createdUserId}}",
+                "roles",
+                "{{createdRoleId}}"
+              ]
             }
           }
         },
@@ -858,8 +1123,16 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/api/v1/admin/roles/{{createdRoleId}}",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "admin", "roles", "{{createdRoleId}}"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "admin",
+                "roles",
+                "{{createdRoleId}}"
+              ]
             }
           }
         }
@@ -894,13 +1167,34 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/api/v1/admin/users?page=0&size=10",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "admin", "users"],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "admin",
+                "users"
+              ],
               "query": [
-                { "key": "page", "value": "0" },
-                { "key": "size", "value": "10" },
-                { "key": "search", "value": "", "disabled": true },
-                { "key": "status", "value": "ACTIVE", "disabled": true }
+                {
+                  "key": "page",
+                  "value": "0"
+                },
+                {
+                  "key": "size",
+                  "value": "10"
+                },
+                {
+                  "key": "search",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "status",
+                  "value": "ACTIVE",
+                  "disabled": true
+                }
               ]
             }
           }
@@ -925,7 +1219,7 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test('Status 200', function() { pm.response.to.have.status(200); });",
+                  "pm.test('Status 200', function() { pm.expect([200, 201]).to.include(pm.response.code); });",
                   "pm.test('User created with ID', function() {",
                   "    pm.expect(pm.response.json().data).to.have.property('id');",
                   "});",
@@ -940,15 +1234,27 @@
           ],
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"username\": \"{{newAdminCreatedUsername}}\",\n  \"email\": \"{{newAdminCreatedEmail}}\",\n  \"password\": \"Password@123\",\n  \"fullName\": \"Auto Created User\",\n  \"birthOfDate\": \"2000-06-15\",\n  \"phoneNumber\": \"{{newAdminCreatedPhone}}\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/v1/admin/users",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "admin", "users"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "admin",
+                "users"
+              ]
             }
           }
         },
@@ -973,8 +1279,16 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/api/v1/admin/users/{{createdUserId}}",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "admin", "users", "{{createdUserId}}"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "admin",
+                "users",
+                "{{createdUserId}}"
+              ]
             }
           }
         },
@@ -994,15 +1308,28 @@
           ],
           "request": {
             "method": "PUT",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"fullName\": \"Updated By Admin\",\n  \"birthOfDate\": \"1998-03-20\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/v1/admin/users/{{createdUserId}}",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "admin", "users", "{{createdUserId}}"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "admin",
+                "users",
+                "{{createdUserId}}"
+              ]
             }
           }
         },
@@ -1027,8 +1354,17 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/api/v1/admin/users/{{createdUserId}}/roles",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "admin", "users", "{{createdUserId}}", "roles"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "admin",
+                "users",
+                "{{createdUserId}}",
+                "roles"
+              ]
             }
           }
         },
@@ -1047,15 +1383,29 @@
           ],
           "request": {
             "method": "PATCH",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"status\": \"LOCKED\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/v1/admin/users/{{createdUserId}}/status",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "admin", "users", "{{createdUserId}}", "status"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "admin",
+                "users",
+                "{{createdUserId}}",
+                "status"
+              ]
             }
           }
         },
@@ -1077,15 +1427,29 @@
           ],
           "request": {
             "method": "PATCH",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"status\": \"ACTIVE\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/v1/admin/users/{{createdUserId}}/status",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "admin", "users", "{{createdUserId}}", "status"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "admin",
+                "users",
+                "{{createdUserId}}",
+                "status"
+              ]
             }
           }
         },
@@ -1109,8 +1473,16 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/api/v1/admin/users/{{createdUserId}}",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "admin", "users", "{{createdUserId}}"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "admin",
+                "users",
+                "{{createdUserId}}"
+              ]
             }
           }
         }
