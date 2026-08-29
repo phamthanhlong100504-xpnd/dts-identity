@@ -143,7 +143,6 @@ class RefreshTokenServiceTest {
         RefreshTokenRequest request = new RefreshTokenRequest("valid-refresh-token");
         Claims claims = mock(Claims.class);
         when(jwtProvider.validateRefreshToken("valid-refresh-token")).thenReturn(claims);
-        when(jwtProvider.getUserId(claims)).thenReturn(user.getId());
         when(refreshTokenRepository.findByTokenHash(anyString())).thenReturn(Optional.empty());
 
         BusinessException exception = assertThrows(BusinessException.class, () -> authService.refreshToken(request));
@@ -156,7 +155,6 @@ class RefreshTokenServiceTest {
         RefreshTokenRequest request = new RefreshTokenRequest("valid-refresh-token");
         Claims claims = mock(Claims.class);
         when(jwtProvider.validateRefreshToken("valid-refresh-token")).thenReturn(claims);
-        when(jwtProvider.getUserId(claims)).thenReturn(user.getId());
 
         RefreshToken storedToken = new RefreshToken();
         storedToken.setTokenHash("hash");
@@ -174,7 +172,6 @@ class RefreshTokenServiceTest {
         RefreshTokenRequest request = new RefreshTokenRequest("valid-refresh-token");
         Claims claims = mock(Claims.class);
         when(jwtProvider.validateRefreshToken("valid-refresh-token")).thenReturn(claims);
-        when(jwtProvider.getUserId(claims)).thenReturn(user.getId());
 
         RefreshToken storedToken = new RefreshToken();
         storedToken.setTokenHash("hash");
@@ -254,7 +251,7 @@ class RefreshTokenServiceTest {
         assertNotNull(storedToken.getRevokedAt());
         // New token saved
         verify(refreshTokenRepository).save(argThat(t ->
-                t.getUserId().equals(user.getId()) &&
+                user.getId().equals(t.getUserId()) &&
                 !t.getTokenHash().equals("hash") // Different hash
         ));
     }

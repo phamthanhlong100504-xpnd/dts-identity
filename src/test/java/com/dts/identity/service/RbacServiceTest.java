@@ -20,6 +20,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
@@ -324,14 +327,18 @@ class RbacServiceTest {
     @Test
     @DisplayName("deletePermission - Soft deletes and cleans role_permissions")
     void deletePermission_SoftDeletesAndCleans() {
+        com.dts.identity.entity.RolePermission rp = com.dts.identity.entity.RolePermission.builder()
+                .roleId(roleId)
+                .permissionId(permissionId)
+                .build();
         when(permissionRepository.findById(permissionId)).thenReturn(Optional.of(permission));
-        when(rolePermissionRepository.findByPermissionId(permissionId)).thenReturn(List.of());
+        when(rolePermissionRepository.findByPermissionId(permissionId)).thenReturn(List.of(rp));
 
         userService.deletePermission(permissionId, actorId);
 
         assertNotNull(permission.getDeletedAt());
         assertEquals(actorId, permission.getUpdatedBy());
-        verify(rolePermissionRepository).deleteByRoleIdAndPermissionId(any(), eq(permissionId));
+        verify(rolePermissionRepository).deleteByRoleIdAndPermissionId(roleId, permissionId);
         verify(permissionRepository).save(permission);
     }
 
@@ -408,6 +415,7 @@ class RbacServiceTest {
     @DisplayName("updateUserStatus - BANNED status revokes all tokens")
     void updateUserStatus_Banned_RevokesTokens() {
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        when(userRepository.save(any(User.class))).thenReturn(user);
 
         userService.updateUserStatus(userId, new com.dts.identity.dto.request.UpdateUserStatusRequest("BANNED"));
 
@@ -419,6 +427,7 @@ class RbacServiceTest {
     @DisplayName("updateUserStatus - LOCKED status revokes all tokens")
     void updateUserStatus_Locked_RevokesTokens() {
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        when(userRepository.save(any(User.class))).thenReturn(user);
 
         userService.updateUserStatus(userId, new com.dts.identity.dto.request.UpdateUserStatusRequest("LOCKED"));
 
@@ -432,6 +441,7 @@ class RbacServiceTest {
         user.setFailedLoginAttempts(5);
         user.setLockedUntil(java.time.Instant.now().plusSeconds(3600));
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        when(userRepository.save(any(User.class))).thenReturn(user);
 
         userService.updateUserStatus(userId, new com.dts.identity.dto.request.UpdateUserStatusRequest("ACTIVE"));
 
@@ -458,6 +468,8 @@ class RbacServiceTest {
     void searchUsers_FiltersByStatus() {
         // Just verify the specification is built correctly
         var pageable = org.springframework.data.domain.PageRequest.of(0, 10);
+        when(userRepository.findAll(any(Specification.class), any(Pageable.class)))
+                .thenReturn(org.springframework.data.domain.Page.empty());
         var page = userService.searchUsers(null, "ACTIVE", null, pageable);
         // This tests the specification building path
         assertNotNull(page);
@@ -467,6 +479,8 @@ class RbacServiceTest {
     @DisplayName("searchUsers - Filters by role name")
     void searchUsers_FiltersByRole() {
         var pageable = org.springframework.data.domain.PageRequest.of(0, 10);
+        when(userRepository.findAll(any(Specification.class), any(Pageable.class)))
+                .thenReturn(org.springframework.data.domain.Page.empty());
         var page = userService.searchUsers(null, null, "ROLE_STUDENT", pageable);
         assertNotNull(page);
     }

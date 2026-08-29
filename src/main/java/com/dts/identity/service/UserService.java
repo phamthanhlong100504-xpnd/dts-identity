@@ -173,6 +173,7 @@ public class UserService {
     public List<RoleResponse> getUserRoles(UUID userId) {
         return userRoleRepository.findByUserId(userId).stream()
                 .filter(ur -> ur.getRole() != null) // Bỏ qua role đã bị soft-delete
+                .filter(ur -> ur.getRole().getDeletedAt() == null) // Bỏ qua role đã soft-delete
                 .map(ur -> {
                     Role role = ur.getRole();
                     List<String> permissions = rolePermissionRepository.findByRoleId(role.getId()).stream()
