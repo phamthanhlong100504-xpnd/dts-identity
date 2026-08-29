@@ -174,7 +174,6 @@ class RbacServiceTest {
 
         when(userRoleRepository.findByUserId(userId)).thenReturn(List.of(userRole, deletedUserRole));
         when(rolePermissionRepository.findByRoleId(roleId)).thenReturn(List.of());
-        when(rolePermissionRepository.findByRoleId(deletedRole.getId())).thenReturn(List.of());
 
         List<RoleResponse> roles = userService.getUserRoles(userId);
 
