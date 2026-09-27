@@ -8,12 +8,12 @@ services:
     environment:
       - SPRING_PROFILES_ACTIVE=prod
       - JAVA_TOOL_OPTIONS=-Xms128m -Xmx256m -XX:+UseSerialGC -XX:MaxMetaspaceSize=128m -Xss512k
-      - EUREKA_URI=http://eureka-server:8761/eureka/
-      - DB_HOST=postgres
-      - DB_PORT=5432
+      - EUREKA_URI=http://103.20.96.85:8761/eureka/
+      - DB_HOST=103.20.96.85
+      - DB_PORT=5434
       - DB_NAME=dts_identity
       - DB_USERNAME=postgres
-      - DB_PASSWORD=${DB_PASSWORD:-postgres}
+      - DB_PASSWORD=K59Ptl*100504
       - REDIS_HOST=redis
       - REDIS_PORT=6379
       - JWT_ACCESS_SECRET=${JWT_ACCESS_SECRET:-uPq3xK8mR5vY2wZ9aB4cD7eF1gH3iJ6kL0nO5pQ8rS2tU4vW6xY9zA1bC3dE7fG9}
