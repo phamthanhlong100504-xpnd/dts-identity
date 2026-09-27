@@ -128,6 +128,15 @@ public class AuthService {
                 .build();
         userRoleRepository.save(userRole);
 
+        // Publish user-created event for downstream services (progress, practice)
+        Map<String, Object> eventPayload = new HashMap<>();
+        eventPayload.put("userId", user.getId().toString());
+        eventPayload.put("username", user.getUsername());
+        eventPayload.put("email", user.getEmail());
+        eventPayload.put("fullName", user.getFullName());
+        outboxPublisher.publish("user-events", "USER_CREATED",
+                user.getId().toString(), "USER", eventPayload);
+
         // Generate OTP for email verification
         generateAndSendVerificationCode(user, VerificationType.REGISTER);
 
@@ -447,13 +456,12 @@ public class AuthService {
         verificationCodeRepository.save(code);
 
         // Write to outbox for async Kafka delivery to Notification Service
-        // (OTP được gửi kèm trong payload để Notification Service gửi SMS/email)
+        // (OTP không đưa vào Kafka để tránh lộ bí mật; email/SMS được gửi trực tiếp bên dưới)
         Map<String, Object> eventPayload = new HashMap<>();
         eventPayload.put("userId", user.getId().toString());
         eventPayload.put("email", user.getEmail());
         eventPayload.put("username", user.getUsername());
         eventPayload.put("verificationType", type.name());
-        eventPayload.put("otp", otp);  // Notification Service sẽ xóa sau khi gửi
         outboxPublisher.publish("auth-events", "verification-code-generated",
                 user.getId().toString(), "USER", eventPayload);
 
