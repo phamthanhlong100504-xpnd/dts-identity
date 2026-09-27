@@ -22,7 +22,7 @@ spring:
   jpa:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
     hibernate:
-      ddl-auto: validate  # Flyway manages schema; Hibernate only validates
+      ddl-auto: update  # Flyway manages schema; Hibernate auto adds missing columns
     show-sql: false
     properties:
       hibernate:
