@@ -28,7 +28,7 @@ services:
       - APP_MAIL_SENDER_NAME=${APP_MAIL_SENDER_NAME:-DTS Identity}
     mem_limit: 400m
     extra_hosts:
-      - "kafka:172.20.0.1"
+      - "kafka:103.20.96.85"
     networks:
       - dts-network
 
