@@ -21,10 +21,10 @@ services:
       - KAFKA_BOOTSTRAP_SERVERS=${KAFKA_BOOTSTRAP_SERVERS:-kafka:9092}
       - SPRING_MAIL_HOST=${SPRING_MAIL_HOST:-smtp.gmail.com}
       - SPRING_MAIL_PORT=${SPRING_MAIL_PORT:-587}
-      - SPRING_MAIL_USERNAME=${SPRING_MAIL_USERNAME:-noreply@dts.com}
-      - SPRING_MAIL_PASSWORD=${SPRING_MAIL_PASSWORD:-REMOVED_SECRET}
+      - SPRING_MAIL_USERNAME=${SPRING_MAIL_USERNAME:-phamthanhlong725@gmail.com}
+      - SPRING_MAIL_PASSWORD=${SPRING_MAIL_PASSWORD:-hcde lacg nfoi vgqu}
       - APP_MAIL_ENABLED=${APP_MAIL_ENABLED:-true}
-      - APP_MAIL_FROM=${APP_MAIL_FROM:-noreply@dts.com}
+      - APP_MAIL_FROM=${APP_MAIL_FROM:-phamthanhlong725@gmail.com}
       - APP_MAIL_SENDER_NAME=${APP_MAIL_SENDER_NAME:-DTS Identity}
     mem_limit: 400m
     extra_hosts:
