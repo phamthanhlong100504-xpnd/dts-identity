@@ -4,14 +4,14 @@
   "values": [
     {
       "key": "baseUrl",
-      "value": "http://103.75.182.249:8081",
+      "value": "http://103.20.96.85:8081",
       "type": "default",
       "enabled": true,
       "description": "VPS Identity Service URL"
     },
     {
       "key": "VPS_HOST",
-      "value": "103.75.182.249",
+      "value": "103.20.96.85",
       "type": "default",
       "enabled": true,
       "description": "VPS host (resolved baseUrl)"
