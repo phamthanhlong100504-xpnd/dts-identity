@@ -1,143 +1,51 @@
 # API Blueprint: User Profile
 
-## Endpoint: Xem profile
+## GET /api/v1/users/me
 
-```
-GET /api/v1/users/me
-Authorization: Bearer <access_token>
-```
+Header Authorization: Bearer <access-token>. Không có request body hoặc tham số chọn userId. Controller lấy UUID chủ thể, UserService.getUser tìm user chưa soft-delete và cache theo UUID trong cache users, TTL 30 phút.
 
-### Prerequisites
-
-- Access token hợp lệ trong header `Authorization`
-
-### Logic (server side)
-
-1. Spring Security xác thực JWT → `Authentication` object
-2. Lấy `userId` từ `authentication.getPrincipal()`
-3. Tìm user trong bảng `users` (có Redis cache, TTL 30 phút)
-4. Map sang `UserResponse` DTO
-5. Trả về 200
-
-### Response (JSON, 200 OK)
+HTTP 200, ví dụ:
 
 ```json
 {
   "success": true,
   "message": "Success",
   "data": {
-    "id": "a6808bb0-f090-4f84-965b-26f8d78ef01c",
-    "username": "student01",
-    "email": "student01@example.com",
-    "fullName": "Nguyen Van A",
+    "id": "11111111-1111-4111-8111-111111111111",
+    "username": "student_demo",
+    "email": "student@example.com",
+    "fullName": "Nguyễn Văn An",
     "birthOfDate": "2000-01-01",
-    "phoneNumber": "+84901234567",
+    "phoneNumber": "0900000000",
     "status": "ACTIVE",
-    "emailVerifiedAt": "2026-07-19T09:00:00Z",
+    "emailVerifiedAt": "2026-10-01T00:00:00Z",
     "phoneVerifiedAt": null,
-    "lastLoginAt": "2026-07-20T00:00:00Z",
-    "createdAt": "2026-07-19T08:00:00Z",
-    "updatedAt": "2026-07-20T00:00:00Z"
+    "lastLoginAt": "2026-10-18T00:00:00Z",
+    "createdAt": "2026-10-01T00:00:00Z",
+    "updatedAt": "2026-10-18T00:00:00Z",
+    "selectedLicenseClass": "A1"
   },
-  "timestamp": "2026-07-20T00:00:00.000Z"
+  "timestamp": "2026-10-18T00:00:00Z"
 }
 ```
 
-### Errors
+selectedLicenseClass có thể null khi chưa chọn. Các mốc thời gian xác minh/login có thể null; birthOfDate là date, timestamp là Instant. Không dùng status hoặc fullName như định danh thay UUID.
 
-| Code | Message | Nguyên nhân |
-|---|---|---|
-| `403` | Access denied | Không có token hoặc token hết hạn |
-| `404` | User not found | User đã bị soft-delete |
+Lỗi: thiếu/sai/hết hạn access token →401 tại SecurityConfig; user không tồn tại hoặc bị soft-delete và không được tìm thấy →404, BusinessException(message,status) có thể mang BIZ-400. Profile có cache nên không coi GET này là truy vấn DB trực tiếp ở mọi lần gọi. Có thể429 bởi rate limiter. Xem [contract notes](contract_notes.md).
 
----
+## PUT /api/v1/users/me
 
-## Endpoint: Cập nhật profile
+Dùng DTO UpdateMyProfileRequest riêng. Không dùng UpdateUserRequest của admin cho API tự sửa hồ sơ. Contract chi tiết ở [update_my_profile.md](update_my_profile.md), gồm username 3–20 ký tự, email, fullName, birthOfDate, phoneNumber và quy tắc trim/emailVerifiedAt. Không gửi status để tự đổi trạng thái tài khoản.
 
-```
-PUT /api/v1/users/me
-Authorization: Bearer <access_token>
-```
+## PUT /api/v1/users/me/license
 
-### Request Body (JSON) — Partial Update
+Dùng body {"licenseClass":"A1"}, response data.licenseClass. Xem [select_license_class.md](select_license_class.md); GET profile ở trên lại trả data.selectedLicenseClass.
 
-```json
-{
-  "fullName": "Nguyen Van B",
-  "phoneNumber": "+84907654321"
-}
-```
+## GET /api/v1/users/me/roles
 
-| Field | Type | Required | Constraint |
-|---|---|---|---|
-| `username` | string | ❌ | 3–50 ký tự, unique |
-| `email` | string | ❌ | Email hợp lệ, unique |
-| `fullName` | string | ❌ | Max 100 ký tự |
-| `birthOfDate` | string (date) | ❌ | `YYYY-MM-DD` |
-| `phoneNumber` | string | ❌ | Max 20 ký tự, unique |
-| `status` | string | ❌ | `PENDING`, `ACTIVE`, `LOCKED`, `BANNED` |
+Header Bearer; lấy chủ thể hiện tại. Service đọc user_roles, bỏ role null/đã soft-delete, trả danh sách RoleResponse với permission name đang đọc từ role_permissions.
 
-> Chỉ gửi field cần thay đổi. Field `null` hoặc không gửi sẽ được bỏ qua.
-
-### Logic (server side)
-
-1. Lấy `userId` từ `Authentication`
-2. Tìm user, kiểm tra từng field được gửi lên:
-   - Nếu thay đổi `username`/`email`/`phoneNumber` → kiểm tra unique
-   - Các field khác → cập nhật trực tiếp
-3. `userRepository.save(user)` → evict Redis cache
-4. Trả về 200
-
-### Response (JSON, 200 OK)
-
-```json
-{
-  "success": true,
-  "message": "Success",
-  "data": {
-    "id": "a6808bb0-f090-4f84-965b-26f8d78ef01c",
-    "username": "student01",
-    "email": "student01@example.com",
-    "fullName": "Nguyen Van B",
-    "birthOfDate": "2000-01-01",
-    "phoneNumber": "+84907654321",
-    "status": "ACTIVE",
-    "emailVerifiedAt": "2026-07-19T09:00:00Z",
-    "phoneVerifiedAt": null,
-    "lastLoginAt": "2026-07-20T00:00:00Z",
-    "createdAt": "2026-07-19T08:00:00Z",
-    "updatedAt": "2026-07-20T00:05:00Z"
-  },
-  "timestamp": "2026-07-20T00:00:00.000Z"
-}
-```
-
-### Errors
-
-| Code | Message | Nguyên nhân |
-|---|---|---|
-| `400` | Username already taken | Trùng username với user khác |
-| `400` | Email already registered | Trùng email |
-| `400` | Invalid status | Status không hợp lệ |
-| `403` | Access denied | Không có token |
-
----
-
-## Endpoint: Xem roles & permissions
-
-```
-GET /api/v1/users/me/roles
-Authorization: Bearer <access_token>
-```
-
-### Logic (server side)
-
-1. Lấy `userId` từ `Authentication`
-2. Query `user_roles` JOIN `roles` WHERE `userId = ?` AND `roles.deleted_at IS NULL`
-3. Với mỗi role, query `role_permissions` JOIN `permissions` để lấy danh sách permission name
-4. Trả về 200
-
-### Response (JSON, 200 OK)
+HTTP 200:
 
 ```json
 {
@@ -145,37 +53,15 @@ Authorization: Bearer <access_token>
   "message": "Success",
   "data": [
     {
-      "id": "b1234567-0000-0000-0000-000000000001",
+      "id": "22222222-2222-4222-8222-222222222222",
       "name": "ROLE_STUDENT",
       "permissions": ["questions:read", "exams:read"]
     }
   ],
-  "timestamp": "2026-07-20T00:00:00.000Z"
+  "timestamp": "2026-10-18T00:00:00Z"
 }
 ```
 
----
+Danh sách permission trong ví dụ không phải cam kết mọi môi trường có đúng hai quyền. Việc sửa role/permission thuộc API admin; đọc danh sách này không tự viết lại JWT đã cấp.
 
-## User Status Lifecycle
-
-```
-┌─────────┐  verify OTP   ┌────────┐
-│ PENDING │──────────────>│ ACTIVE │
-└─────────┘               └───┬────┘
-                              │
-                   5 lần sai  │  Admin
-                   mật khẩu   │  unlock
-                              │
-                         ┌────▼───────┐    30 phút    ┌────────┐
-                         │   LOCKED   │──────────────>│ ACTIVE │
-                         └─────┬──────┘               └────────┘
-                               │ Admin ban
-                               ▼
-                         ┌────────┐
-                         │ BANNED │ (không thể đăng nhập)
-                         └────────┘
-```
-
----
-
-> Generated according to the implementation plan. See `auth.md` for authentication endpoints and `admin.md` for admin management.
+Nguồn: [UserController](../../src/main/java/com/dts/identity/controller/UserController.java), [UserService](../../src/main/java/com/dts/identity/service/UserService.java), [UserResponse](../../src/main/java/com/dts/identity/dto/response/UserResponse.java), [RedisConfig](../../src/main/java/com/dts/identity/config/RedisConfig.java).

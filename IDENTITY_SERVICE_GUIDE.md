@@ -1,3 +1,9 @@
+# DTS Identity — tài liệu dịch vụ
+
+Tài liệu V8 bên dưới được giữ để tham khảo lịch sử quyền chapter. Phần hiện hành gồm hồ sơ cá nhân, chọn GPLX, V9 và quyền thi chính thức V10 nằm tại [docs/README.md](docs/README.md), [API blueprints](docs/api-blueprint/README.md) và [migration catalog](docs/db/MIGRATION_CATALOG.md). Cách chạy máy mới xem [LOCAL_SETUP](docs/LOCAL_SETUP.md).
+
+---
+
 
 ## 1. Mục đích
 
@@ -302,4 +308,3 @@ Content Builder chapter APIs
     ↓
 Question Bank 2026 deployment
 ```
-
