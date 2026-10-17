@@ -407,7 +407,8 @@ public class AuthService {
 
         UserInfo userInfo = new UserInfo(
                 user.getId(), user.getUsername(), user.getEmail(),
-                user.getFullName(), roleNames, permissionNames);
+                user.getFullName(), roleNames, permissionNames,
+                user.getSelectedLicenseClass());
 
         return new AuthResponse(accessToken, refreshToken, "Bearer",
                 jwtProvider.getAccessExpirationMs() / 1000, userInfo);

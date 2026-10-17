@@ -19,7 +19,8 @@ public record UserResponse(
         Instant phoneVerifiedAt,
         Instant lastLoginAt,
         Instant createdAt,
-        Instant updatedAt
+        Instant updatedAt,
+        String selectedLicenseClass
 ) {
     public static UserResponse from(User user) {
         return new UserResponse(
@@ -34,7 +35,8 @@ public record UserResponse(
                 user.getPhoneVerifiedAt(),
                 user.getLastLoginAt(),
                 user.getCreatedAt(),
-                user.getUpdatedAt()
+                user.getUpdatedAt(),
+                user.getSelectedLicenseClass()
         );
     }
 }

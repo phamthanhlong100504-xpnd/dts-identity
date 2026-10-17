@@ -20,6 +20,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.dts.identity.dto.response.UserLicenseResponse;
 
 import java.time.Instant;
 import java.util.ArrayList;
@@ -57,6 +58,34 @@ public class UserService {
         return UserResponse.from(user);
     }
 
+    @Transactional
+    @CacheEvict(value = "users", key = "#userId")
+    public UserLicenseResponse updateSelectedLicenseClass(
+            UUID userId,
+            UpdateLicenseRequest request
+    ) {
+        if (request == null || request.licenseClass() == null) {
+            throw BusinessException.badRequest("License class is required");
+        }
+
+        LicenseClass licenseClass;
+        try {
+            licenseClass = LicenseClass.valueOf(request.licenseClass());
+        } catch (IllegalArgumentException ex) {
+            throw BusinessException.badRequest(
+                    "Invalid license class: " + request.licenseClass()
+            );
+        }
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() ->
+                        new BusinessException("User not found", HttpStatus.NOT_FOUND)
+                );
+
+        user.setSelectedLicenseClass(licenseClass.name());
+        userRepository.save(user);
+        return new UserLicenseResponse(licenseClass.name());
+    }
     @Transactional
     @CacheEvict(value = "users", key = "#id")
     public UserResponse updateUser(UUID id, UpdateUserRequest request) {
@@ -103,6 +132,38 @@ public class UserService {
                 id.toString(), "USER", eventPayload);
 
         return UserResponse.from(saved);
+    }
+
+    @Transactional
+    @CacheEvict(value = "users", key = "#id")
+    public UserResponse updateMyProfile(UUID id, UpdateMyProfileRequest request) {
+        if (request == null) {
+            throw BusinessException.badRequest("Profile is required");
+        }
+
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new BusinessException("User not found", HttpStatus.NOT_FOUND));
+
+        String email = request.email() == null ? null : request.email().trim();
+        if (email != null && email.isBlank()) {
+            throw BusinessException.badRequest("Email is required");
+        }
+        if (email != null && !email.equalsIgnoreCase(user.getEmail())) {
+            if (userRepository.existsByEmailIgnoreCaseAndDeletedAtIsNull(email)) {
+                throw BusinessException.conflict("Email already registered");
+            }
+            // Email cũ đã xác minh không xác minh cho địa chỉ mới.
+            user.setEmailVerifiedAt(null);
+        }
+
+        return updateUser(id, new UpdateUserRequest(
+                request.username() == null ? null : request.username().trim(),
+                email,
+                request.fullName() == null ? null : request.fullName().trim(),
+                request.birthOfDate(),
+                request.phoneNumber() == null ? null : request.phoneNumber().trim(),
+                null
+        ));
     }
 
     @Transactional

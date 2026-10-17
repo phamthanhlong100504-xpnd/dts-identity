@@ -1,8 +1,6 @@
 package com.dts.identity.repository;
 
 import com.dts.identity.entity.User;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
@@ -14,7 +12,8 @@ import java.util.Optional;
 import java.util.UUID;
 
 @Repository
-public interface UserRepository extends JpaRepository<User, UUID>, JpaSpecificationExecutor<User> {
+public interface UserRepository
+        extends JpaRepository<User, UUID>, JpaSpecificationExecutor<User> {
 
     @Query("SELECT u FROM User u WHERE u.username = :username AND u.deletedAt IS NULL")
     Optional<User> findByUsername(@Param("username") String username);
@@ -34,6 +33,8 @@ public interface UserRepository extends JpaRepository<User, UUID>, JpaSpecificat
     boolean existsByUsernameAndDeletedAtIsNull(String username);
 
     boolean existsByEmailAndDeletedAtIsNull(String email);
+
+    boolean existsByEmailIgnoreCaseAndDeletedAtIsNull(String email);
 
     boolean existsByPhoneNumberAndDeletedAtIsNull(String phone);
 }

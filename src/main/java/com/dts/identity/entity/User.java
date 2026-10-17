@@ -43,6 +43,9 @@ public class User {
     @Column(name = "phone_number", length = 20, nullable = false)
     private String phoneNumber;
 
+    @Column(name = "selected_license_class", length = 10)
+    private String selectedLicenseClass;
+
     @Column(name = "status", length = 20, nullable = false)
     @Enumerated(EnumType.STRING)
     private UserStatus status;

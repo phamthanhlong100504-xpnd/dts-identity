@@ -16,6 +16,7 @@ public record AuthResponse(
             String email,
             String fullName,
             List<String> roles,
-            List<String> permissions
+            List<String> permissions,
+            String selectedLicenseClass
     ) {}
 }
