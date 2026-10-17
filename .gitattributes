@@ -1,0 +1,4 @@
+# Keep the two new reviewed migration files byte-for-byte as on local.
+# Existing tracked migrations retain their current Git normalization behavior.
+src/main/resources/db/migration/V9__add_selected_license_class.sql -text
+src/main/resources/db/migration/V10__add_official_exam_update_permission.sql -text

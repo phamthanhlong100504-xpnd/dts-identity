@@ -33,3 +33,13 @@ tmp-download/
 
 # Redundant docker folder
 docker/
+
+# Local configuration and maintenance output; source examples stay versioned.
+.env.*
+!.env.example
+/handoff/
+/_local/
+__pycache__/
+*.py[cod]
+/hs_err_pid*.log
+/replay_pid*.log
