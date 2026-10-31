@@ -83,8 +83,8 @@ spring:
   mail:
     host: ${SPRING_MAIL_HOST:smtp.gmail.com}
     port: ${SPRING_MAIL_PORT:587}
-    username: ${SPRING_MAIL_USERNAME:noreply@dts.com}
-    password: ${SPRING_MAIL_PASSWORD:REMOVED_SECRET}
+    username: ${SPRING_MAIL_USERNAME:khoihv1@gmail.com}
+    password: ${SPRING_MAIL_PASSWORD:iutk lfkx etax sfxr}
     properties:
       mail:
         smtp:
@@ -186,6 +186,6 @@ eureka:
 app:
   mail:
     enabled: ${APP_MAIL_ENABLED:true}
-    from: ${APP_MAIL_FROM:noreply@dts.com}
+    from: ${APP_MAIL_FROM:khoihv1@gmail.com}
     sender-name: ${APP_MAIL_SENDER_NAME:DTS Identity}
 
