@@ -5,3 +5,8 @@
 Tài liệu API theo source hiện tại nằm ở [api-blueprint/README.md](api-blueprint/README.md). Các trang mới giải thích profile, chọn GPLX, trường user trong auth response và quyền cho các service. [db/MIGRATION_CATALOG.md](db/MIGRATION_CATALOG.md) mô tả thứ tự SQL V1–V10.
 
 Các trang auth.md/admin.md, API-DOCS.md, openapi.json, ERD và Postman cũ được giữ để tham khảo; nếu ví dụ cũ khác phần profile/hạng GPLX hiện tại, đọc contract_notes.md và các blueprint mới. Swagger /api-docs của đúng phiên bản service đang chạy là nguồn OpenAPI động. Không sửa Java hoặc chạy dữ liệu thử chỉ để khớp ví dụ tài liệu cũ.
+
+## Bổ sung quyền học và tiến độ
+
+- [Contract Progress/Practice](api-blueprint/progress_practice_permissions.md): ma trận V11, JWT và triển khai.
+- [Permission integration](api-blueprint/permission_integration.md): giữ các quyền Content Builder/Examination và bổ sung hai service học tập.

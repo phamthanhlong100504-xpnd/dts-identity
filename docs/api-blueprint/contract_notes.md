@@ -40,3 +40,7 @@ Logout/đổi/reset password thu hồi refresh session, không có access blackl
 Đợt chuẩn bị Git không đổi Java, YAML, pom.xml, SQL, Redis, Kafka hay tài khoản. Source 16 file chức năng local được commit đúng nội dung đang có; .gitattributes chỉ giữ byte hai SQL mới chưa được track. Các ví dụ không phải dữ liệu seed hoặc lệnh tạo fixture.
 
 Nguồn: [UserController](../../src/main/java/com/dts/identity/controller/UserController.java), [UserService](../../src/main/java/com/dts/identity/service/UserService.java), [SecurityConfig](../../src/main/java/com/dts/identity/config/SecurityConfig.java), [ApiResponse](../../src/main/java/com/dts/identity/dto/response/ApiResponse.java).
+
+## Contract tích hợp Progress/Practice
+
+V11 bổ sung 6 quyền theo [ma trận](progress_practice_permissions.md). Dùng permission tên thuần trong JWT; prefix PERM_ chỉ có tại consumer. Token phải được cấp lại sau migration. Quyền học cá nhân không bỏ kiểm ownership; practice:import còn yêu cầu ROLE_ADMIN ở Practice. Không đổi API/DTO, OTP, email hoặc luồng xác thực trong đợt cấp quyền này.

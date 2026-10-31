@@ -70,3 +70,7 @@ user-events mang USER_CREATED, USER_UPDATED, USER_DELETED; auth-events mang các
 Profile cache dùng Redis; rate limiter dùng bộ nhớ tiến trình, không dùng Redis. Có bucket riêng auth và api theo địa chỉ IP, mức cấu hình trong code lần lượt 10 và 30 request/phút. Khi qua Gateway, nhiều request có thể chia sẻ cách nhận diện IP tùy forwarded header; client xử lý 429 thay vì tự gọi liên tục.
 
 Code trong Git không bao gồm tài khoản, volume, token hoặc credential thật của máy người phát triển. Mọi thay đổi schema tiếp theo tạo migration mới theo thứ tự, giữ nguyên SQL đã ghi checksum. Tài liệu này mô tả code đang bàn giao; không tuyên bố đã thực hiện lại thao tác tài khoản hay kiểm thử runtime trong quá trình dọn Git.
+
+## Quyền Progress và Practice — V11
+
+Bổ sung danh mục progress:read/update và practice:read/learn/exam/import bằng migration mới. ROLE_STUDENT/ROLE_TEACHER/ROLE_ADMIN đang hoạt động nhận 5 quyền học cá nhân; chỉ ADMIN nhận thêm import. Giữ nguyên V1–V10 và Java nghiệp vụ. [Contract](api-blueprint/progress_practice_permissions.md) mô tả claims JWT, phạm vi dữ liệu và kiểm chứng liên thông.

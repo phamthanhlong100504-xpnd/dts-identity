@@ -551,3 +551,7 @@ Authorization: Bearer <access_token>
 ---
 
 > Generated according to the implementation plan. See `docs/db/identity_erd.md` for database schema and Outbox pattern details.
+
+## Quyền Progress/Practice sau V11
+
+Login/refresh giữ nguyên route, DTO và trạng thái xử lý. Sau khi Flyway áp dụng V11, token được cấp mới đọc các quyền Progress/Practice từ database theo role hiện có. JWT cũ không tự cập nhật. Không thêm PERM_ vào permission claim, không thêm selectedLicenseClass vào JWT. Xem [contract V11](progress_practice_permissions.md) để đối chiếu các quyền và quyền import ADMIN.

@@ -1,31 +1,35 @@
-# Identity — quyền tích hợp với Content Builder và Examination
+# Identity — quyền tích hợp với các service nghiệp vụ
 
 ## Migration và quyền
 
 | Version | Permission | Cấp cho | Ý nghĩa ở service tiêu thụ |
 | --- | --- | --- | --- |
-| V8 | chapters:read | ROLE_ADMIN | Đọc chapter Content Builder |
-| V8 | chapters:create | ROLE_ADMIN | Tạo chapter Content Builder |
-| V8 | chapters:update | ROLE_ADMIN | Sửa chapter Content Builder |
-| V10 | exams:update | ROLE_ADMIN chưa soft-delete | Cấu hình/công bố kỳ thi và các thao tác Examination yêu cầu quyền update |
+| V8 | chapters:read/create/update | ROLE_ADMIN | Quyền chapter Content Builder đã có |
+| V10 | exams:update | ROLE_ADMIN chưa soft-delete | Cấu hình/công bố kỳ thi theo contract Examination |
+| V11 | progress:read/update | ROLE_STUDENT, ROLE_TEACHER, ROLE_ADMIN chưa soft-delete | Đọc/cập nhật dữ liệu Progress đúng chủ thể |
+| V11 | practice:read/learn/exam | ROLE_STUDENT, ROLE_TEACHER, ROLE_ADMIN chưa soft-delete | Đọc, học/ôn và phiên thi thử cá nhân |
+| V11 | practice:import | ROLE_ADMIN chưa soft-delete | Import ngân hàng; Practice vẫn bắt buộc cả role ADMIN |
 
-V8 đã có trong nhánh trước đợt commit local này; V10 là file local chưa commit lúc thu thập snapshot. Cả hai ghi danh mục permissions và liên kết role_permissions, không thêm route Identity mới. Endpoint cụ thể, quyền đọc/sở hữu và thời điểm công bố kết quả do repo Content Builder/Examination quy định; exams:update không tự thay thế mọi quy tắc quyền của service đó.
+Các tên nhóm có dấu / trong bảng là cách viết gọn; tên permission thực tế đầy đủ trong [contract V11](progress_practice_permissions.md). V8/V10 giữ nguyên. V11 chỉ thêm danh mục và role_permissions; không thêm endpoint Identity, không đổi role của tài khoản và không cập nhật token đang tồn tại.
 
 ## Quy trình triển khai
 
-1. Đưa file migration đúng phiên bản vào source release Identity.
-2. Vận hành chạy Flyway trên đúng database theo LOCAL_SETUP; không nhập permission thủ công thay migration và không sửa V8/V10 đã ghi checksum.
-3. Đăng nhập lại hoặc refresh tài khoản admin để nhận JWT mới. Token cũ không tự cập nhật permissions.
-4. Gateway và service tiêu thụ dùng cấu hình xác thực tương ứng. JWT giữ roles=[ROLE_ADMIN,...] và permissions=[chapters:read,...,exams:update,...].
+1. Đưa V11 vào source trên nhánh fix/identity-progress-practice-permissions từ base e49bba0; giữ nguyên V1–V10.
+2. Candidate chạy toàn bộ migration và JWT test trên PostgreSQL riêng trước khi áp dụng file vào repo local.
+3. Sau apply/verify, đối chiếu database mục tiêu và Flyway history rồi chạy migration bằng công cụ Flyway, giữ validate-on-migrate, không sửa checksum/repair/baseline để lách lỗi. Xem [LOCAL_SETUP](../LOCAL_SETUP.md).
+4. Đăng nhập lại hoặc refresh để nhận access JWT mới. AuthService lấy permissions từ database khi phát token; token cũ giữ snapshot cũ tới khi hết hạn/được thay thế.
+5. Dùng JWT mới kiểm tra trực tiếp Progress/Practice và qua Gateway theo cấu hình môi trường. Không tự cấp bypass khi thiếu quyền.
 
-Nếu permission đã tồn tại, INSERT dùng ON CONFLICT (name) WHERE deleted_at IS NULL DO NOTHING. Mapping dùng ON CONFLICT (role_id,permission_id) DO NOTHING. Các câu INSERT tránh trùng, nhưng Flyway vẫn là cơ chế theo dõi version/checksum, không phải lý do chạy SQL thủ công lặp lại.
+JWT giữ roles=[ROLE_STUDENT,...] và permissions=[progress:read,...] với tên thuần. Consumer chuyển permission sang authority PERM_<name>. Không thêm PERM_ vào dữ liệu permissions của Identity. Quyền mới không thay thế chapters:* hoặc exams:* cũ.
+
+V11 không tự cấp quyền cho ROLE_GUEST/vai trò tự tạo, không cấp practice:import cho STUDENT/TEACHER. Các liên kết đã tồn tại do quản trị cấp trước được giữ nguyên; migration không phải tác vụ thu hồi quyền hoặc khôi phục role/permission đã soft-delete.
 
 ## API đọc ngữ cảnh
 
-- GET /api/v1/users/me/roles: role và danh sách permission của người hiện tại.
-- GET /api/v1/admin/roles và /permissions: danh mục cho ADMIN.
-- POST /api/v1/auth/login hoặc /refresh: phát token với context hiện tại.
+- GET /api/v1/users/me/roles: role và danh sách permission hiện tại theo database.
+- GET /api/v1/admin/roles và /permissions: danh mục quản trị theo contract hiện có.
+- POST /api/v1/auth/login hoặc /refresh: cấp token với context hiện tại.
 
-Nhận HTTP200 từ API danh mục không chứng minh token cũ có quyền mới; client sử dụng token được cấp lại. Đợt chuẩn bị Git không gọi những API này, không gán role cho account thật và không thay đổi dữ liệu người dùng.
+HTTP200 từ API danh mục không chứng minh token cũ đã nhận quyền. Với dữ liệu học cá nhân, userId vẫn lấy từ JWT sub; quyền admin cũng không mở quyền chọn phiên của người khác. Progress chuyển tiếp Bearer sang Practice cho learning-catalog/exam progress nên token liên thông cần practice:read.
 
-Nguồn: [V8](../../src/main/resources/db/migration/V8__add_chapter_permissions.sql), [V10](../../src/main/resources/db/migration/V10__add_official_exam_update_permission.sql), [AuthService](../../src/main/java/com/dts/identity/service/AuthService.java), [AdminController](../../src/main/java/com/dts/identity/controller/AdminController.java).
+Nguồn: [V11](../../src/main/resources/db/migration/V11__add_progress_practice_permissions.sql), [AuthService](../../src/main/java/com/dts/identity/service/AuthService.java), [JwtProvider](../../src/main/java/com/dts/identity/security/JwtProvider.java), [UserService](../../src/main/java/com/dts/identity/service/UserService.java).

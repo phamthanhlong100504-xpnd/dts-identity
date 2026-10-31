@@ -54,3 +54,7 @@ Refresh thành công thu hồi refresh token cũ, cấp cặp mới và user con
 Lỗi HTTP theo [contract_notes.md](contract_notes.md). Login sai thông tin →401; register trùng dữ liệu theo nhánh kiểm tra →409; refresh sai/hết hạn/thu hồi →401; auth rate limit →429. Các API công khai vẫn chịu Bean Validation.
 
 Nguồn: [AuthResponse](../../src/main/java/com/dts/identity/dto/response/AuthResponse.java), [AuthService](../../src/main/java/com/dts/identity/service/AuthService.java), [User](../../src/main/java/com/dts/identity/entity/User.java).
+
+## Đối chiếu quyền V11
+
+Sau migration V11 và cấp token mới, roles/permissions trong auth response và access JWT phải khớp context tài khoản. GET users/me/roles đọc context hiện tại của database; kết quả đó không biến đổi token cũ. Nhóm permission mới có resource progress/practice; giữ nguyên các quyền chapters/exams cũ. Ma trận và giới hạn cấp quyền ở [contract V11](progress_practice_permissions.md).

@@ -2,3 +2,6 @@
 # Existing tracked migrations retain their current Git normalization behavior.
 src/main/resources/db/migration/V9__add_selected_license_class.sql -text
 src/main/resources/db/migration/V10__add_official_exam_update_permission.sql -text
+
+# Keep the new permission migration LF; retain every existing migration rule above.
+src/main/resources/db/migration/V11__add_progress_practice_permissions.sql text eol=lf
