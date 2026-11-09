@@ -54,6 +54,8 @@ public class SecurityConfig {
                 .requestMatchers("/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                 // Admin-only endpoints
+                // Capability lookup authenticates any actor; it grants nothing by itself.
+                .requestMatchers(HttpMethod.GET, "/api/v1/admin/me/capabilities").authenticated()
                 .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
                 // All other endpoints require authentication
                 .anyRequest().authenticated()
