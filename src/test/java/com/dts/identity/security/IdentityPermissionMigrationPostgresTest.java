@@ -27,7 +27,8 @@ class IdentityPermissionMigrationPostgresTest {
             var builder=Flyway.configure().dataSource(url,postgres.getUsername(),postgres.getPassword())
                     .locations("classpath:db/migration").schemas(schema).defaultSchema(schema)
                     .baselineOnMigrate(false).validateOnMigrate(true).outOfOrder(false).cleanDisabled(true);
-            if(target!=null)builder.target(target);
+            // Historical V11 regression; newer migrations have their own upgrade tests.
+            builder.target(target == null ? "11" : target);
             return builder.load();
         }
         void upgrade(){flyway(null).migrate();flyway(null).validate();}

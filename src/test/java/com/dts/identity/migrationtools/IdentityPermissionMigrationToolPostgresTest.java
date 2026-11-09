@@ -26,7 +26,9 @@ class IdentityPermissionMigrationToolPostgresTest {
     @BeforeEach void existingV10DatabaseAndSourceSnapshot() throws Exception {
         Path resources=new ClassPathResource("db/migration").getFile().toPath();
         try(var paths=Files.list(resources)) {
-            for(Path file:paths.filter(p->p.getFileName().toString().endsWith(".sql")).toList())
+            // The original tool intentionally supports only V1-V11. Test that contract
+            // against its historical source snapshot, including future-version refusal.
+            for(Path file:paths.filter(p->p.getFileName().toString().matches("V(?:[1-9]|10|11)__.*\\.sql")).toList())
                 Files.copy(file,directory.resolve(file.getFileName()));
         }
         schema="t_"+UUID.randomUUID().toString().replace("-","");
