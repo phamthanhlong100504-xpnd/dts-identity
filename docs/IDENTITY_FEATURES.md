@@ -74,3 +74,8 @@ Code trong Git không bao gồm tài khoản, volume, token hoặc credential th
 ## Quyền Progress và Practice — V11
 
 Bổ sung danh mục progress:read/update và practice:read/learn/exam/import bằng migration mới. ROLE_STUDENT/ROLE_TEACHER/ROLE_ADMIN đang hoạt động nhận 5 quyền học cá nhân; chỉ ADMIN nhận thêm import. Giữ nguyên V1–V10 và Java nghiệp vụ. [Contract](api-blueprint/progress_practice_permissions.md) mô tả claims JWT, phạm vi dữ liệu và kiểm chứng liên thông.
+
+
+## Card 04 — Hướng dẫn mô phỏng
+
+V13 bổ sung ba quyền Admin `simulation-guides:read/update/publish`; học viên tiếp tục dùng `simulations:read`. Xem [contract quyền hướng dẫn](api-blueprint/simulation_guide_permissions.md).

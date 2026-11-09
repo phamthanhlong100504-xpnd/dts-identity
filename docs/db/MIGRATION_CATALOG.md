@@ -15,6 +15,7 @@ Thư mục: src/main/resources/db/migration. Flyway dùng flyway_schema_history;
 | 9 | V9__add_selected_license_class.sql | Thêm users.selected_license_class nullable VARCHAR(10), CHECK 15 hạng GPLX |
 | 10 | V10__add_official_exam_update_permission.sql | Thêm exams:update, gán cho ROLE_ADMIN chưa soft-delete |
 | 11 | V11__add_progress_practice_permissions.sql | Thêm 6 quyền Progress/Practice; 5 quyền học cá nhân cho 3 role hệ thống active, import chỉ ADMIN active |
+| 12 | V12__add_simulation_and_media_permissions.sql | Thêm 19 quyền mô phỏng/Media/Content Builder; 6 quyền trong phạm vi cá nhân cho 3 role active, 13 quyền quản trị riêng ADMIN active |
 
 ## V9: hồ sơ và lựa chọn hạng
 
@@ -28,12 +29,25 @@ Ghi permission exams:update với resource exams, tránh trùng permission đang
 
 INSERT danh mục và liên kết, không sửa dữ liệu người dùng/phiên hoặc các grant đang có. Permission active cùng tên được reuse; record soft-delete được giữ lịch sử. Không tự gán GUEST/custom role hoặc gán vào role đã soft-delete. Trên seed chuẩn V10 thêm 6 permission và 16 mapping; có dữ liệu bổ sung trước thì số insert có thể ít hơn. [Ma trận đầy đủ](../api-blueprint/progress_practice_permissions.md).
 
+## V12: quyền mô phỏng và tài nguyên
+
+Chỉ INSERT danh mục và grant, bảo toàn V1–V11 và dữ liệu cũ. Trên seed V11 chuẩn thêm 19 permission/31 mapping; role GUEST/custom/inactive không được tự cấp mới. Media và Content Builder phải kiểm scope ở API; grant không thay thế ownership/publication. [Ma trận và kiểm thử](../api-blueprint/simulation_permissions.md).
+
 ## Quy tắc triển khai
 
-- Dữ liệu mới: chạy migration đủ V1–V11. Dữ liệu có lịch sử: Flyway xác minh/checksum và chạy các version còn thiếu.
+- Dữ liệu mới: chạy migration đủ V1–V12. Dữ liệu có lịch sử: Flyway xác minh/checksum và chạy các version còn thiếu.
 - SQL đã chạy được giữ nguyên nội dung. Thay đổi tiếp theo tạo version mới; không xóa lịch sử hoặc sửa checksum để lách lỗi.
 - Database có bảng nhưng chưa có lịch sử cần rà riêng trước baseline; không đảm bảo baseline tạo đủ schema.
-- .gitattributes giữ nguyên quy tắc -text của V9/V10 và chỉ thêm text eol=lf cho V11; không renormalize migration cũ.
+- .gitattributes giữ nguyên quy tắc -text của V9/V10 và text eol=lf của V11; V12 cũng dùng LF. Không renormalize migration cũ.
 - Đợt chuẩn bị Git không chạy SQL, kiểm tra database hoặc thay dữ liệu tài khoản; danh mục là tài liệu source, không phải báo cáo migration thực tế.
 
 [Cách chạy](../LOCAL_SETUP.md) nêu override Hibernate validate để schema đổi qua Flyway SQL. Tài khoản, session và credential môi trường không nằm trong repo.
+
+
+### V13 — simulation guide administration
+
+`V13__add_simulation_guide_permissions.sql` thêm ba permission và grant ROLE_ADMIN cho Card 04; giữ nguyên V1–V12 và grant cũ. [Contract/triển khai](../api-blueprint/simulation_guide_permissions.md).
+
+### V14 — simulation mock exam access
+
+`V14__add_simulation_exam_permission.sql` thêm `simulations:exam`, cấp cho ba role hoạt động ADMIN/TEACHER/STUDENT. Chuỗi mới đến V14, giữ SQL V1–V13 và dữ liệu cũ. Trên seed V13 chuẩn thêm một permission/ba mapping. [Contract/triển khai](../api-blueprint/simulation_exam_permissions.md).

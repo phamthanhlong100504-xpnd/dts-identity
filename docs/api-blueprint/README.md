@@ -20,3 +20,12 @@ Các trang mới và users.md mô tả phần thay đổi hiện tại. auth.md/
 ## Quyền học và tiến độ
 
 [Contract quyền Progress/Practice — Part 0–4](progress_practice_permissions.md) mô tả V11, ma trận role, dữ liệu được giữ nguyên, JWT và tiêu chí tích hợp. [Permission integration](permission_integration.md) bao gồm cả các quyền Content Builder/Examination đã có.
+
+## Quyền mô phỏng và tài nguyên
+
+[Contract mô phỏng/Media/Content Builder — Part 0–4](simulation_permissions.md) mô tả V12, ma trận role, scope tại consumer và triển khai phần Identity của Card 01.
+
+
+- [Card 04 — Quyền quản trị hướng dẫn mô phỏng](simulation_guide_permissions.md): V13, ROLE_ADMIN + permission, JWT và trình tự triển khai.
+
+- [Card 05 — Quyền thi thử mô phỏng](simulation_exam_permissions.md): V14, ma trận role và JWT; tách khỏi luyện video và thi lý thuyết.

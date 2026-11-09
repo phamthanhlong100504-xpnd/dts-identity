@@ -70,7 +70,7 @@ File infra advertise Kafka localhost:9092, phù hợp Java trên host. docker-co
 
 ## 5. Migration rồi chạy ứng dụng
 
-Migration có trong src/main/resources/db/migration, Flyway dùng flyway_schema_history, chạy theo version số V1 đến V11. Với cấu hình mẫu:
+Migration có trong src/main/resources/db/migration, Flyway dùng flyway_schema_history, chạy theo version số V1 đến V12. Với cấu hình mẫu:
 
 - SPRING_FLYWAY_ENABLED=true: các SQL chưa chạy được thực thi khi khởi động service.
 - SPRING_FLYWAY_VALIDATE_ON_MIGRATE=true: đối chiếu checksum migration đã ghi.
@@ -85,7 +85,7 @@ mvn spring-boot:run
 
 Đây là bước vận hành có thể ghi database qua migration và các worker, không phải bước kiểm tra chỉ đọc. Chọn đúng database, giữ backup theo quy trình nhóm trước khi nâng cấp database đã có dữ liệu. Không chạy từng V9/V10 bằng psql rồi để Flyway không có lịch sử; không sửa SQL đã áp dụng, xóa schema history hay dùng repair để bỏ qua checksum không khớp.
 
-Database trống chạy đủ V1–V11. Database đã có bảng nhưng chưa có lịch sử Flyway phải được rà riêng vì baseline-on-migrate=true, baseline-version=1 trong source; không coi baseline tự động là chứng minh schema đúng.
+Database trống chạy đủ V1–V12. Database đã có bảng nhưng chưa có lịch sử Flyway phải được rà riêng vì baseline-on-migrate=true, baseline-version=1 trong source; không coi baseline tự động là chứng minh schema đúng.
 
 ## 6. Điểm truy cập và dữ liệu
 
@@ -119,3 +119,9 @@ Sau V8/V10, token cấp trước migration chưa tự có permission mới. Đă
 Công cụ chỉ cho phép lịch sử V1–V10 phù hợp nguồn (hoặc V11 cùng checksum đã áp dụng), dừng khi có version lạ/lỗi/baseline cần rà riêng. Flyway chạy validate-on-migrate và chỉ nâng đến V11; không clean/repair/baseline, không chạy Spring/worker/Hibernate update. Sau migrate kiểm 6 permission và grant của các role đang hoạt động, rồi login/refresh lấy JWT mới để kiểm Progress/Practice.
 
 Khi khởi động Identity bằng cách local hiện có, tiếp tục nạp SPRING_JPA_HIBERNATE_DDL_AUTO=validate để schema thay đổi qua migration. Giữ cấu hình mail/OTP/compose đã chốt; task này không gộp nhánh sửa mail khác.
+
+## Nâng cấp quyền mô phỏng bằng V12
+
+Trên feat/simulation-permissions, chạy candidate test PostgreSQL riêng rồi apply/verify file V12. Công cụ migration V11 trong gói trước giữ phạm vi V11, không dùng để áp dụng V12. Sau khi chọn đúng database và giữ backup theo quy trình nhóm, khởi động Identity bằng cấu hình local hiện có, Flyway enabled/validate-on-migrate và SPRING_JPA_HIBERNATE_DDL_AUTO=validate. Không sửa checksum hoặc baseline/repair để vượt lỗi lịch sử.
+
+Kiểm log Flyway nâng đến 12 thành công, rồi login/refresh lấy JWT mới và đối chiếu /api/v1/users/me/roles. Học viên có simulations:read/learn và quyền tài nguyên cá nhân; không được tự có simulation-scenarios:* hoặc media:manage. Không gửi token/credential lên chat. [Contract V12](api-blueprint/simulation_permissions.md) nêu đầy đủ tên quyền, giới hạn consumer và các bước nghiệm thu còn lại.
