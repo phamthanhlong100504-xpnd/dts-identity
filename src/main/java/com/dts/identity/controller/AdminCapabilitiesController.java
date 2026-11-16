@@ -114,7 +114,9 @@ public class AdminCapabilitiesController {
         pages.put("roles", admin && dbPerms.contains("roles:read"));
         pages.put("settings", admin);
         Instant now = Instant.now();
-        var grant = new Grant(actor.toString(), enter, now.toString(), now.plus(90, ChronoUnit.SECONDS).toString(),
+        var grant = new Grant(actor.toString(), enter, 
+            now.minus(5, ChronoUnit.MINUTES).toString(), 
+            now.plus(60, ChronoUnit.MINUTES).toString(),
             Collections.unmodifiableMap(pages), resources);
         return ResponseEntity.ok().cacheControl(CacheControl.noStore()).body(ApiResponse.ok(grant));
     }
