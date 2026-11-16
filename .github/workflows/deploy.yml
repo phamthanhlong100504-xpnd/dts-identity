@@ -33,11 +33,14 @@ jobs:
       - name: Setup Docker permissions for Testcontainers
         run: |
           sudo chmod 666 /var/run/docker.sock
+          echo "api.version=1.44" > ~/.docker-java.properties
           docker version
 
       - name: Build & Test
         env:
           DOCKER_HOST: unix:///var/run/docker.sock
+          DOCKER_API_VERSION: "1.44"
+          TESTCONTAINERS_RYUK_DISABLED: "true"
         run: mvn clean package -B
 
       - name: Publish Test Results
