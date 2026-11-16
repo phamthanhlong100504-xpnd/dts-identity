@@ -30,7 +30,14 @@ jobs:
           java-version: '21'
           cache: maven
 
+      - name: Setup Docker permissions for Testcontainers
+        run: |
+          sudo chmod 666 /var/run/docker.sock
+          docker version
+
       - name: Build & Test
+        env:
+          DOCKER_HOST: unix:///var/run/docker.sock
         run: mvn clean package -B
 
       - name: Publish Test Results
